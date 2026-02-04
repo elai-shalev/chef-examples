@@ -1,0 +1,13 @@
+X2A Sanity Check
+================
+This file confirms the Kubernetes job ran successfully and was able to push to git.
+
+Job ID:        efb39465-dab1-4d93-8b54-3640a69dbea9
+Phase:         init
+Project ID:    5fb1516c-b8dc-4ff7-af46-ccd2be03f0fe
+Project Abbrev: TMP
+Module ID:     N/A
+Module Name:   N/A
+Timestamp:     2026-02-04T14:21:24Z
+Git Author:    X2A Migration Bot <x2a-bot@redhat.com>
+Target Branch: main
