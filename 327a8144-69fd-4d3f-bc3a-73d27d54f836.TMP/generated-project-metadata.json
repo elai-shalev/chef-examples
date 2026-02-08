@@ -2,7 +2,7 @@
   {
     "name": "nginx-multisite",
     "path": "cookbooks/nginx-multisite",
-    "description": "Nginx web server with multiple SSL-enabled virtual hosts, security hardening, and firewall configuration",
+    "description": "Nginx web server with multiple SSL-enabled virtual hosts, security hardening, and fail2ban integration",
     "technology": "Chef"
   },
   {
