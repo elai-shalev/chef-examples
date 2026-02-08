@@ -1,6 +1,6 @@
 # Migration Plan: nginx-multisite
 
-**TLDR**: This cookbook configures a secure Nginx web server with multiple virtual hosts (3 sites), each with SSL enabled. It includes security hardening via fail2ban, ufw firewall, SSH hardening, and system-level security configurations.
+**TLDR**: This cookbook configures a secure Nginx web server with multiple virtual hosts. It sets up 3 SSL-enabled websites (test, ci, and status), configures security measures including fail2ban and UFW firewall, and generates self-signed SSL certificates for each site.
 
 ## Service Type and Instances
 
@@ -8,20 +8,20 @@
 
 **Configured Instances**:
 
-- **test.cluster.local**: SSL-enabled Nginx virtual host
+- **test.cluster.local**: Main test website
   - Location/Path: /opt/server/test
-  - Port/Socket: 80 (redirect to 443), 443 (HTTPS)
-  - Key Config: SSL enabled, serves static content
+  - Port/Socket: 80 (redirect to 443), 443 (SSL)
+  - Key Config: SSL enabled, self-signed certificate
 
-- **ci.cluster.local**: SSL-enabled Nginx virtual host
+- **ci.cluster.local**: Continuous integration website
   - Location/Path: /opt/server/ci
-  - Port/Socket: 80 (redirect to 443), 443 (HTTPS)
-  - Key Config: SSL enabled, serves static content
+  - Port/Socket: 80 (redirect to 443), 443 (SSL)
+  - Key Config: SSL enabled, self-signed certificate
 
-- **status.cluster.local**: SSL-enabled Nginx virtual host
+- **status.cluster.local**: Status monitoring website
   - Location/Path: /opt/server/status
-  - Port/Socket: 80 (redirect to 443), 443 (HTTPS)
-  - Key Config: SSL enabled, serves static content
+  - Port/Socket: 80 (redirect to 443), 443 (SSL)
+  - Key Config: SSL enabled, self-signed certificate
 
 ## File Structure
 
@@ -48,37 +48,55 @@ The cookbook performs operations in this order:
    - Resources: include_recipe (4)
 
 2. **security** (`cookbooks/nginx-multisite/recipes/security.rb`):
-   - Installs security packages: fail2ban, ufw
-   - Configures fail2ban with custom jail settings
-   - Sets up UFW firewall with default deny policy and allows SSH, HTTP, HTTPS
-   - Configures system-level security via sysctl
-   - Hardens SSH by disabling root login and password authentication
-   - Resources: package (1), service (2), template (2), execute (8)
+   - Installs security packages: fail2ban and ufw
+   - Configures and enables fail2ban service
+   - Deploys fail2ban jail configuration template
+   - Configures UFW firewall:
+     - Sets default deny policy
+     - Allows SSH, HTTP, and HTTPS traffic
+     - Enables the firewall
+   - Deploys sysctl security configuration template
+   - Configures SSH security:
+     - Disables root login if node['security']['ssh']['disable_root'] is true
+     - Disables password authentication if node['security']['ssh']['password_auth'] is false
+   - Resources: package (1), service (1), template (2), execute (8), service (1)
 
 3. **nginx** (`cookbooks/nginx-multisite/recipes/nginx.rb`):
    - Installs nginx package
-   - Configures main nginx.conf and security.conf
-   - Creates document root directories for each site: test.cluster.local, ci.cluster.local, status.cluster.local
-   - Places index.html files in each document root
+   - Deploys main nginx.conf template
+   - Deploys security.conf template for global security settings
    - Enables and starts nginx service
+   - Creates document root directory for test.cluster.local
+   - Creates document root directory for ci.cluster.local
+   - Creates document root directory for status.cluster.local
+   - Deploys index.html file for test.cluster.local
+   - Deploys index.html file for ci.cluster.local
+   - Deploys index.html file for status.cluster.local
    - Resources: package (1), template (2), service (1), directory (3), cookbook_file (3)
 
 4. **ssl** (`cookbooks/nginx-multisite/recipes/ssl.rb`):
-   - Installs SSL-related packages: openssl, ca-certificates
+   - Installs SSL-related packages: openssl and ca-certificates
    - Creates ssl-cert group
    - Creates certificate and private key directories
-   - Generates self-signed SSL certificates for sites: test.cluster.local, ci.cluster.local, status.cluster.local
+   - Generates self-signed SSL certificate for test.cluster.local
+   - Generates self-signed SSL certificate for ci.cluster.local
+   - Generates self-signed SSL certificate for status.cluster.local
+   - Sets appropriate permissions on key files
    - Resources: package (1), group (1), directory (2), execute (3)
 
 5. **sites** (`cookbooks/nginx-multisite/recipes/sites.rb`):
-   - Creates Nginx site configuration files for sites: test.cluster.local, ci.cluster.local, status.cluster.local
-   - Creates symlinks from sites-available to sites-enabled
-   - Removes default site configuration
+   - Deploys site configuration template for test.cluster.local
+   - Deploys site configuration template for ci.cluster.local
+   - Deploys site configuration template for status.cluster.local
+   - Creates symlink from sites-available to sites-enabled for test.cluster.local
+   - Creates symlink from sites-available to sites-enabled for ci.cluster.local
+   - Creates symlink from sites-available to sites-enabled for status.cluster.local
+   - Removes default nginx site configuration
    - Resources: template (3), link (3), file (1)
 
 ## Dependencies
 
-**External cookbook dependencies**: None specified
+**External cookbook dependencies**: None specified in the provided data
 **System package dependencies**: nginx, fail2ban, ufw, openssl, ca-certificates
 **Service dependencies**: nginx, fail2ban, ssh
 
@@ -112,7 +130,7 @@ The cookbook performs operations in this order:
 **Templates rendered**:
 - nginx.conf.erb → /etc/nginx/nginx.conf (1 time)
 - security.conf.erb → /etc/nginx/conf.d/security.conf (1 time)
-- site.conf.erb → /etc/nginx/sites-available/[site_name] (3 times, one for each site)
+- site.conf.erb → /etc/nginx/sites-available/test.cluster.local, /etc/nginx/sites-available/ci.cluster.local, /etc/nginx/sites-available/status.cluster.local (3 times)
 - fail2ban.jail.local.erb → /etc/fail2ban/jail.local (1 time)
 - sysctl-security.conf.erb → /etc/sysctl.d/99-security.conf (1 time)
 
@@ -128,59 +146,58 @@ nginx -t
 cat /etc/nginx/nginx.conf
 cat /etc/nginx/conf.d/security.conf
 
-# Site configuration validation - test.cluster.local
+# Site configuration - check each site individually
+# Site: test.cluster.local
 cat /etc/nginx/sites-available/test.cluster.local
 ls -la /etc/nginx/sites-enabled/test.cluster.local
 curl -I -k https://test.cluster.local
 curl -I http://test.cluster.local  # Should redirect to HTTPS
-openssl s_client -connect test.cluster.local:443 -servername test.cluster.local
+openssl x509 -in /etc/ssl/certs/test.cluster.local.crt -text -noout | grep Subject
+ls -la /opt/server/test/
 
-# Site configuration validation - ci.cluster.local
+# Site: ci.cluster.local
 cat /etc/nginx/sites-available/ci.cluster.local
 ls -la /etc/nginx/sites-enabled/ci.cluster.local
 curl -I -k https://ci.cluster.local
 curl -I http://ci.cluster.local  # Should redirect to HTTPS
-openssl s_client -connect ci.cluster.local:443 -servername ci.cluster.local
+openssl x509 -in /etc/ssl/certs/ci.cluster.local.crt -text -noout | grep Subject
+ls -la /opt/server/ci/
 
-# Site configuration validation - status.cluster.local
+# Site: status.cluster.local
 cat /etc/nginx/sites-available/status.cluster.local
 ls -la /etc/nginx/sites-enabled/status.cluster.local
 curl -I -k https://status.cluster.local
 curl -I http://status.cluster.local  # Should redirect to HTTPS
-openssl s_client -connect status.cluster.local:443 -servername status.cluster.local
-
-# SSL certificate verification
-openssl x509 -in /etc/ssl/certs/test.cluster.local.crt -text -noout
-openssl x509 -in /etc/ssl/certs/ci.cluster.local.crt -text -noout
-openssl x509 -in /etc/ssl/certs/status.cluster.local.crt -text -noout
-
-# Document root verification
-ls -la /opt/server/test/
-ls -la /opt/server/ci/
+openssl x509 -in /etc/ssl/certs/status.cluster.local.crt -text -noout | grep Subject
 ls -la /opt/server/status/
 
-# Security configuration verification
+# SSL certificate verification
+openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/test.cluster.local.crt
+openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ci.cluster.local.crt
+openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/status.cluster.local.crt
+
+# Security configuration
 cat /etc/fail2ban/jail.local
 fail2ban-client status
-fail2ban-client status sshd
 fail2ban-client status nginx-http-auth
-ufw status verbose
-cat /etc/sysctl.d/99-security.conf
-sysctl -a | grep -E 'net.ipv4.conf.all.rp_filter|net.ipv4.tcp_syncookies'
 
-# SSH hardening verification
+# Firewall status
+ufw status verbose
+ufw status numbered
+
+# SSH security settings
 grep PermitRootLogin /etc/ssh/sshd_config
 grep PasswordAuthentication /etc/ssh/sshd_config
 
+# Sysctl security settings
+cat /etc/sysctl.d/99-security.conf
+sysctl -a | grep net.ipv4.tcp_syncookies
+
 # Logs
-tail -f /var/log/nginx/access.log
 tail -f /var/log/nginx/error.log
 tail -f /var/log/nginx/test.cluster.local_access.log
-tail -f /var/log/nginx/test.cluster.local_error.log
 tail -f /var/log/nginx/ci.cluster.local_access.log
-tail -f /var/log/nginx/ci.cluster.local_error.log
 tail -f /var/log/nginx/status.cluster.local_access.log
-tail -f /var/log/nginx/status.cluster.local_error.log
 tail -f /var/log/fail2ban.log
 
 # Network listening
