@@ -2,7 +2,7 @@
   {
     "name": "nginx-multisite",
     "path": "cookbooks/nginx-multisite",
-    "description": "Multi-site Nginx configuration with SSL support, security hardening, and virtual host management",
+    "description": "Nginx web server with multiple SSL-enabled virtual hosts, security hardening, and self-signed certificates",
     "technology": "Chef"
   },
   {
@@ -14,7 +14,7 @@
   {
     "name": "fastapi-tutorial",
     "path": "cookbooks/fastapi-tutorial",
-    "description": "Python FastAPI application deployment with PostgreSQL database",
+    "description": "Python FastAPI application deployment with PostgreSQL database backend",
     "technology": "Chef"
   }
 ]
