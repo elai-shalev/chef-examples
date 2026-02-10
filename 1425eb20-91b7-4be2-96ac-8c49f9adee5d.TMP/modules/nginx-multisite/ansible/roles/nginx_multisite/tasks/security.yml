@@ -1,0 +1,64 @@
+---
+- name: Install security packages
+  ansible.builtin.package:
+    name:
+      - fail2ban
+      - ufw
+    state: present
+- name: Enable and start fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+- name: Configure fail2ban
+  ansible.builtin.template:
+    src: fail2ban.jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    mode: "0644"
+  notify: Restart fail2ban
+- name: Set UFW default deny policy
+  community.general.ufw:
+    default: deny
+    state: enabled
+  register: ufw_default_deny
+- name: Allow SSH through UFW
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+  register: ufw_allow_ssh
+- name: Allow HTTP through UFW
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+  register: ufw_allow_http
+- name: Allow HTTPS through UFW
+  community.general.ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+  register: ufw_allow_https
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+  register: ufw_enable
+- name: Configure system security settings
+  ansible.builtin.template:
+    src: sysctl-security.conf.j2
+    dest: /etc/sysctl.d/99-security.conf
+    mode: "0644"
+  notify: Reload sysctl
+- name: Disable root login if configured
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: ^#?PermitRootLogin
+    line: PermitRootLogin no
+  when: security.ssh.disable_root | bool
+  notify: Restart ssh
+- name: Disable password authentication if configured
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: ^#?PasswordAuthentication
+    line: PasswordAuthentication no
+  when: not security.ssh.password_auth | bool
+  notify: Restart ssh

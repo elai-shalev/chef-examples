@@ -1,0 +1,60 @@
+---
+- name: Install SSL packages
+  ansible.builtin.package:
+    name:
+      - openssl
+      - ca-certificates
+    state: present
+- name: Create ssl-cert group
+  ansible.builtin.group:
+    name: ssl-cert
+    state: present
+- name: Create SSL certificate directory
+  ansible.builtin.file:
+    path: "{{ nginx.ssl.certificate_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+- name: Create SSL private key directory
+  ansible.builtin.file:
+    path: "{{ nginx.ssl.private_key_path }}"
+    owner: root
+    group: ssl-cert
+    mode: "0710"
+    state: directory
+- name: Generate private keys for SSL certificates
+  ansible.builtin.command: openssl genrsa -out "{{ nginx.ssl.private_key_path }}/{{ item.key }}.key" 2048
+  args:
+    creates: "{{ nginx.ssl.private_key_path }}/{{ item.key }}.key"
+  loop: "{{ nginx.sites | dict2items }}"
+  when: item.value.ssl_enabled | bool
+  notify: Reload nginx
+  changed_when: true
+- name: Set permissions on private keys
+  ansible.builtin.file:
+    path: "{{ nginx.ssl.private_key_path }}/{{ item.key }}.key"
+    owner: root
+    group: ssl-cert
+    mode: "0640"
+  loop: "{{ nginx.sites | dict2items }}"
+  when: item.value.ssl_enabled | bool
+- name: Generate self-signed SSL certificates
+  ansible.builtin.command: 'openssl req -new -x509  -key "{{ nginx.ssl.private_key_path }}/{{ item.key }}.key"  -out "{{ nginx.ssl.certificate_path }}/{{ item.key
+    }}.crt" -days 365  -subj "/C=US/ST=Example/L=Example/O=Example Org/OU=IT/CN={{ item.key }}/emailAddress=admin@example.com"
+
+    '
+  args:
+    creates: "{{ nginx.ssl.certificate_path }}/{{ item.key }}.crt"
+  loop: "{{ nginx.sites | dict2items }}"
+  when: item.value.ssl_enabled | bool
+  notify: Reload nginx
+  changed_when: true
+- name: Set permissions on certificates
+  ansible.builtin.file:
+    path: "{{ nginx.ssl.certificate_path }}/{{ item.key }}.crt"
+    owner: root
+    group: ssl-cert
+    mode: "0644"
+  loop: "{{ nginx.sites | dict2items }}"
+  when: item.value.ssl_enabled | bool

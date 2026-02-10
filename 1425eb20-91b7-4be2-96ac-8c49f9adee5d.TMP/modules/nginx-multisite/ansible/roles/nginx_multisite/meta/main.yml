@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: nginx_multisite
+  author: Chef to Ansible Migration
+  description: Configures a secure Nginx web server with multiple virtual hosts, each with SSL enabled
+  license: Apache-2.0
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+  galaxy_tags:
+    - nginx
+    - web
+    - ssl
+    - security
+dependencies: []
