@@ -1,0 +1,9 @@
+---
+- name: Include nginx installation tasks
+  ansible.builtin.import_tasks: nginx.yml
+- name: Include security tasks
+  ansible.builtin.import_tasks: security.yml
+- name: Include SSL tasks
+  ansible.builtin.import_tasks: ssl.yml
+- name: Include site configuration tasks
+  ansible.builtin.import_tasks: sites.yml

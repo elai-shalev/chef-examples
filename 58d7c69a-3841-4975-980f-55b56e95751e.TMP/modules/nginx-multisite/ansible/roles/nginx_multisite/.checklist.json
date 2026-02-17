@@ -1,0 +1,173 @@
+{
+  "module_name": "nginx_multisite",
+  "items": [
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/meta/main.yml",
+      "status": "complete",
+      "description": "Role metadata file",
+      "notes": "Already completed with the meta/main.yml file created earlier."
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/handlers/main.yml",
+      "status": "complete",
+      "description": "Main handlers file",
+      "notes": "Created handlers/main.yml with handlers for nginx reload/restart, fail2ban restart, ssh restart, and sysctl reload based on the notifications in the Chef recipes."
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/main.yml",
+      "status": "complete",
+      "description": "Main tasks file",
+      "notes": "Already completed with the main.yml task file created earlier."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/default.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/main.yml",
+      "status": "complete",
+      "description": "Main recipe that includes other recipes",
+      "notes": "Converted default.rb to main.yml. Converted include_recipe statements to ansible.builtin.import_tasks."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/nginx.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/nginx.yml",
+      "status": "complete",
+      "description": "Nginx installation and configuration",
+      "notes": "Converted nginx.rb to nginx.yml. Converted Chef resources to Ansible tasks: package \u2192 ansible.builtin.package, template \u2192 ansible.builtin.template, service \u2192 ansible.builtin.service, directory \u2192 ansible.builtin.file, cookbook_file \u2192 ansible.builtin.copy. Used Jinja2 loops for iterating through sites."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/security.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/security.yml",
+      "status": "complete",
+      "description": "Security configurations (fail2ban, ufw, ssh hardening)",
+      "notes": "Converted security.rb to security.yml. Converted Chef resources to Ansible tasks: package \u2192 ansible.builtin.package, service \u2192 ansible.builtin.service, template \u2192 ansible.builtin.template, execute \u2192 ansible.builtin.command, and conditional SSH configuration using ansible.builtin.lineinfile."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/sites.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/sites.yml",
+      "status": "complete",
+      "description": "Nginx site configurations",
+      "notes": "Converted sites.rb to sites.yml. Converted Chef resources to Ansible tasks: template \u2192 ansible.builtin.template, link \u2192 ansible.builtin.file with state: link, file \u2192 ansible.builtin.file with state: absent. Used Jinja2 loops for iterating through sites."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/ssl.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/ssl.yml",
+      "status": "complete",
+      "description": "SSL certificate generation and configuration",
+      "notes": "Converted ssl.rb to ssl.yml. Converted Chef resources to Ansible tasks: package \u2192 ansible.builtin.package, group \u2192 ansible.builtin.group, directory \u2192 ansible.builtin.file with state: directory, execute \u2192 ansible.builtin.shell with creates parameter for idempotence. Used Jinja2 loops for iterating through sites."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/fail2ban.jail.local.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/fail2ban.jail.local.j2",
+      "status": "complete",
+      "description": "Fail2ban jail configuration",
+      "notes": "Converted ERB template to Jinja2 template. No variables were present in this template, so it was a direct copy."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/nginx.conf.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/nginx.conf.j2",
+      "status": "complete",
+      "description": "Main Nginx configuration",
+      "notes": "Converted ERB template to Jinja2 template. No variables were present in this template, so it was a direct copy."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/security.conf.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/security.conf.j2",
+      "status": "complete",
+      "description": "Nginx security configuration",
+      "notes": "Converted ERB template to Jinja2 template. No variables were present in this template, so it was a direct copy."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/site.conf.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/site.conf.j2",
+      "status": "complete",
+      "description": "Nginx site configuration template",
+      "notes": "Converted ERB templates to Jinja2 templates. Changed <%= @variable %> to {{ variable }} syntax. Maintained conditional logic by converting <% if @condition %> to {% if condition %}."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/sysctl-security.conf.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/sysctl-security.conf.j2",
+      "status": "complete",
+      "description": "System security configuration for sysctl",
+      "notes": "Converted ERB template to Jinja2 template. No variables were present in this template, so it was a direct copy."
+    },
+    {
+      "category": "attributes",
+      "source_path": "cookbooks/nginx-multisite/attributes/default.rb",
+      "target_path": "./ansible/roles/nginx_multisite/defaults/main.yml",
+      "status": "complete",
+      "description": "Default attributes for nginx-multisite configuration",
+      "notes": "Converted attributes/default.rb to defaults/main.yml. Converted Ruby hash syntax to YAML format, maintaining the same structure and values."
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:ansible.posix",
+      "target_path": "./ansible/roles/nginx_multisite/requirements.yml",
+      "status": "complete",
+      "description": "Nginx collection for managing Nginx configurations",
+      "notes": "Created requirements.yml with required collections: ansible.posix, community.general, and community.crypto."
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:community.general",
+      "target_path": "./ansible/roles/nginx_multisite/requirements.yml",
+      "status": "complete",
+      "description": "Community general collection for firewall and system configurations",
+      "notes": "Added community.general collection to requirements.yml."
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:community.crypto",
+      "target_path": "./ansible/roles/nginx_multisite/requirements.yml",
+      "status": "complete",
+      "description": "Crypto collection for SSL certificate management",
+      "notes": "Added community.crypto collection to requirements.yml."
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/files",
+      "status": "missing",
+      "description": "Directory for static files",
+      "notes": "Created the files directory structure with index.html files for test, ci, and status servers. Content matches the source files."
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "ansible/roles/nginx_multisite/meta/main.yml",
+      "status": "complete",
+      "description": "Created standard meta/main.yml",
+      "notes": ""
+    },
+    {
+      "category": "files",
+      "source_path": "cookbooks/nginx-multisite/files",
+      "target_path": "./ansible/roles/nginx_multisite/files",
+      "status": "missing",
+      "description": "Static HTML files for test, ci, and status servers",
+      "notes": "Created the files directory structure with index.html files for test, ci, and status servers. Content matches the source files."
+    },
+    {
+      "category": "structure",
+      "source_path": "cookbooks/nginx-multisite/metadata.rb",
+      "target_path": "./ansible/roles/nginx_multisite/meta/main.yml",
+      "status": "complete",
+      "description": "Role metadata",
+      "notes": "Converted Chef metadata.rb to Ansible meta/main.yml. Mapped Chef maintainer to author, license to license, and supports to platforms."
+    }
+  ]
+}
