@@ -1,0 +1,63 @@
+#!/bin/sh
+#
+# Redis init script for FreeBSD
+#
+
+# PROVIDE: redis{{ item.port }}
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+# Add the following line to /etc/rc.conf to enable redis:
+# redis{{ item.port }}_enable="YES"
+
+. /etc/rc.subr
+
+name="redis{{ item.port }}"
+rcvar="redis{{ item.port }}_enable"
+
+load_rc_config $name
+
+: ${redis{{ item.port }}_enable="NO"}
+: ${redis{{ item.port }}_user="{{ redis_user | default('redis') }}"}
+: ${redis{{ item.port }}_group="{{ redis_group | default('redis') }}"}
+: ${redis{{ item.port }}_config="{{ redis_config_dir | default('/etc/redis') }}/{{ item.port }}.conf"}
+: ${redis{{ item.port }}_pidfile="/var/run/redis/{{ item.port }}.pid"}
+
+command="/usr/local/bin/redis-server"
+command_args="${redis{{ item.port }}_config}"
+pidfile="${redis{{ item.port }}_pidfile}"
+
+start_cmd="redis_start"
+stop_cmd="redis_stop"
+status_cmd="redis_status"
+
+redis_start()
+{
+    if [ -f ${pidfile} ]; then
+        echo "${name} already running?"
+        exit 1
+    fi
+    echo "Starting ${name}."
+    /usr/bin/su -m ${redis{{ item.port }}_user} -c "${command} ${command_args}"
+}
+
+redis_stop()
+{
+    if [ ! -f ${pidfile} ]; then
+        echo "${name} not running?"
+        exit 1
+    fi
+    echo "Stopping ${name}."
+    /usr/local/bin/redis-cli -p {{ item.port }} shutdown
+}
+
+redis_status()
+{
+    if [ ! -f ${pidfile} ]; then
+        echo "${name} is not running."
+        exit 1
+    fi
+    echo "${name} is running."
+}
+
+run_rc_command "$1"

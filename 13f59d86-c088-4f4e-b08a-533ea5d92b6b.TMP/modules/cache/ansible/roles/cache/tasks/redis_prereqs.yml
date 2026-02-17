@@ -1,0 +1,20 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 86400
+  when: ansible_os_family == "Debian"
+  tags:
+    - redis
+    - install
+- name: Install Redis prerequisites packages
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - tcl
+      - tar
+    state: present
+  when: not redis_package_install | bool
+  tags:
+    - redis
+    - install

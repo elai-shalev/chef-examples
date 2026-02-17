@@ -1,0 +1,43 @@
+---
+- name: Configure PAM limits for Redis user
+  community.general.pam_limits:
+    domain: "{{ redis_user | default('redis') }}"
+    limit_type: "{{ item.limit_type }}"
+    limit_item: "{{ item.limit_item }}"
+    value: "{{ item.value }}"
+  loop:
+    - limit_type: soft
+      limit_item: nofile
+      value: 65536
+    - limit_type: hard
+      limit_item: nofile
+      value: 65536
+  tags:
+    - redis
+    - configure
+    - ulimit
+- name: Configure PAM for su
+  ansible.builtin.template:
+    src: pam_su.j2
+    dest: /etc/pam.d/su
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+  tags:
+    - redis
+    - configure
+    - ulimit
+- name: Configure PAM for sudo
+  ansible.builtin.copy:
+    content: "#%PAM-1.0\nauth       include      system-auth\naccount    include      system-auth\npassword   include      system-auth\nsession    optional    \
+      \ pam_keyinit.so revoke\nsession    required     pam_limits.so\nsession    include      system-auth\n"
+    dest: /etc/pam.d/sudo
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+  tags:
+    - redis
+    - configure
+    - ulimit

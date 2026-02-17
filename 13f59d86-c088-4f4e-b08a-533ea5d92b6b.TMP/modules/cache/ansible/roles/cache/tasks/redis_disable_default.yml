@@ -1,0 +1,12 @@
+---
+- name: Stop and disable default Redis service
+  ansible.builtin.service:
+    name: redis-server
+    state: stopped
+    enabled: false
+  register: redis_service_result
+  failed_when: redis_service_result.failed and 'could not find' not in redis_service_result.msg
+  when: redis_disable_default | default(true)
+  tags:
+    - redis
+    - configure

@@ -1,0 +1,11 @@
+---
+- name: Restart Redis
+  ansible.builtin.service:
+    name: redis{{ item.port }}
+    state: restarted
+  loop: "{{ redis_servers }}"
+- name: Restart Redis Sentinel
+  ansible.builtin.service:
+    name: redis-sentinel{{ item.port }}
+    state: restarted
+  loop: "{{ redis_sentinels | default([]) }}"

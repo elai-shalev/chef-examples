@@ -1,0 +1,11 @@
+description "Redis Sentinel {{ item.port }}"
+
+start on runlevel [2345]
+stop on runlevel [016]
+
+respawn
+
+setuid {{ redis_user | default('redis') }}
+setgid {{ redis_group | default('redis') }}
+
+exec /usr/local/bin/redis-sentinel {{ redis_sentinel_config_dir | default('/etc/redis-sentinel') }}/{{ item.port }}.conf

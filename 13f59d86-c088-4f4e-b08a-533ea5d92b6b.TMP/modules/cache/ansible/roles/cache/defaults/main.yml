@@ -1,0 +1,29 @@
+---
+redis_user: redis
+redis_group: redis
+redis_home_dir: /var/lib/redis
+redis_config_dir: /etc/redis
+redis_data_dir: /var/lib/redis
+redis_log_dir: /var/log/redis
+redis_sentinel_config_dir: /etc/redis-sentinel
+redis_version: 6.2.6
+redis_install_from: source
+redis_servers:
+  - port: 6379
+    address: 127.0.0.1
+    unixsocket: false
+    unixsocketperm: 755
+    timeout: 0
+    tcp_backlog: 511
+    tcp_keepalive: 0
+    maxclients: 10000
+    maxmemory: 4gb
+    maxmemory_policy: volatile-lru
+    maxmemory_samples: 3
+    appendonly: "no"
+    appendfsync: everysec
+    aof_rewrite_incremental_fsync: "yes"
+    databases: 16
+    dbfilename: dump.rdb
+    rdbcompression: "yes"
+    rdbchecksum: "yes"

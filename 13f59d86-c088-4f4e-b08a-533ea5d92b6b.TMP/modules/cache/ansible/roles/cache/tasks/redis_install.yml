@@ -1,0 +1,112 @@
+---
+- name: Install Redis dependencies
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - tcl
+    state: present
+  when: ansible_os_family == "Debian"
+  tags:
+    - redis
+    - install
+- name: Install Redis dependencies (RedHat)
+  ansible.builtin.package:
+    name:
+      - gcc
+      - make
+      - tcl
+    state: present
+  when: ansible_os_family == "RedHat"
+  tags:
+    - redis
+    - install
+- name: Create Redis user
+  ansible.builtin.user:
+    name: "{{ redis_user | default('redis') }}"
+    system: true
+    group: "{{ redis_group | default('redis') }}"
+    home: "{{ redis_home_dir | default('/var/lib/redis') }}"
+    shell: /bin/false
+    comment: Redis Server
+  tags:
+    - redis
+    - install
+- name: Create Redis group
+  ansible.builtin.group:
+    name: "{{ redis_group | default('redis') }}"
+    system: true
+  tags:
+    - redis
+    - install
+- name: Download Redis source
+  ansible.builtin.get_url:
+    url: http://download.redis.io/releases/redis-{{ redis_version | default('6.2.6') }}.tar.gz
+    dest: /tmp/redis-{{ redis_version | default('6.2.6') }}.tar.gz
+    checksum: "{{ redis_checksum | default('omit') }}"
+    mode: "0644"
+  when: redis_install_from == "source"
+  tags:
+    - redis
+    - install
+- name: Extract Redis source
+  ansible.builtin.unarchive:
+    src: /tmp/redis-{{ redis_version | default('6.2.6') }}.tar.gz
+    dest: /tmp
+    remote_src: true
+    mode: "0755"
+  when: redis_install_from == "source"
+  tags:
+    - redis
+    - install
+- name: Compile Redis
+  ansible.builtin.command:
+    cmd: make
+    chdir: /tmp/redis-{{ redis_version | default('6.2.6') }}
+    creates: /tmp/redis-{{ redis_version | default('6.2.6') }}/src/redis-server
+  when: redis_install_from == "source"
+  tags:
+    - redis
+    - install
+- name: Install Redis
+  ansible.builtin.command:
+    cmd: make install
+    chdir: /tmp/redis-{{ redis_version | default('6.2.6') }}
+    creates: /usr/local/bin/redis-server
+  when: redis_install_from == "source"
+  tags:
+    - redis
+    - install
+- name: Install Redis from package (Debian)
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+  when:
+    - redis_install_from == "package"
+    - ansible_os_family == "Debian"
+  tags:
+    - redis
+    - install
+- name: Install Redis from package (RedHat)
+  ansible.builtin.dnf:
+    name: redis
+    state: present
+  when:
+    - redis_install_from == "package"
+    - ansible_os_family == "RedHat"
+  tags:
+    - redis
+    - install
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  loop:
+    - "{{ redis_config_dir | default('/etc/redis') }}"
+    - "{{ redis_data_dir | default('/var/lib/redis') }}"
+    - "{{ redis_log_dir | default('/var/log/redis') }}"
+  tags:
+    - redis
+    - install

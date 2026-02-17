@@ -1,0 +1,23 @@
+- name: Install and configure Redis
+  hosts: redis_servers
+  become: true
+  vars:
+    redis_version: 6.2.6
+    redis_install_from: source
+    redis_servers:
+    - port: 6379
+      address: 127.0.0.1
+      maxmemory: 2gb
+      maxmemory_policy: volatile-lru
+    - port: 6380
+      address: 127.0.0.1
+      maxmemory: 1gb
+      maxmemory_policy: allkeys-lru
+    redis_sentinels:
+    - port: 26379
+      master_name: mymaster
+      master_ip: 127.0.0.1
+      master_port: 6379
+      quorum: 2
+  roles:
+  - role: cache

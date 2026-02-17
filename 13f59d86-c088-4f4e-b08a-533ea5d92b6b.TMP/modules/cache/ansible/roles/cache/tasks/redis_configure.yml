@@ -1,0 +1,74 @@
+---
+- name: Create Redis configuration directory
+  ansible.builtin.file:
+    path: "{{ redis_config_dir | default('/etc/redis') }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  tags:
+    - redis
+    - configure
+- name: Create Redis configuration file
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: "{{ redis_config_dir | default('/etc/redis') }}/{{ item.port }}.conf"
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0644"
+  loop: "{{ redis_servers }}"
+  notify: Restart Redis service
+  tags:
+    - redis
+    - configure
+- name: Create Redis systemd service file
+  ansible.builtin.template:
+    src: redis@.service.j2
+    dest: /etc/systemd/system/redis@.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_service_mgr == "systemd"
+  notify: Restart Redis service
+  tags:
+    - redis
+    - configure
+- name: Create Redis init.d service file
+  ansible.builtin.template:
+    src: redis.init.j2
+    dest: /etc/init.d/redis{{ item.port }}
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ redis_servers }}"
+  when: ansible_service_mgr == "sysvinit"
+  notify: Restart Redis service
+  tags:
+    - redis
+    - configure
+- name: Create Redis upstart service file
+  ansible.builtin.template:
+    src: redis.upstart.conf.j2
+    dest: /etc/init/redis{{ item.port }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ redis_servers }}"
+  when: ansible_service_mgr == "upstart"
+  notify: Restart Redis service
+  tags:
+    - redis
+    - configure
+- name: Create Redis rcinit service file
+  ansible.builtin.template:
+    src: redis.rcinit.j2
+    dest: /usr/local/etc/rc.d/redis{{ item.port }}
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ redis_servers }}"
+  when: ansible_os_family == "FreeBSD"
+  notify: Restart Redis service
+  tags:
+    - redis
+    - configure

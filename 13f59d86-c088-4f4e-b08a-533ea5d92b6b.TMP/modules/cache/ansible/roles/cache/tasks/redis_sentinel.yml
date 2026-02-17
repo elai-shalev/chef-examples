@@ -1,0 +1,82 @@
+---
+- name: Create Redis Sentinel configuration directory
+  ansible.builtin.file:
+    path: "{{ redis_sentinel_config_dir | default('/etc/redis-sentinel') }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  tags:
+    - redis
+    - sentinel
+- name: Create Redis Sentinel configuration file
+  ansible.builtin.template:
+    src: sentinel.conf.j2
+    dest: "{{ redis_sentinel_config_dir | default('/etc/redis-sentinel') }}/{{ item.port }}.conf"
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0644"
+  loop: "{{ redis_sentinels | default([]) }}"
+  notify: Restart Redis Sentinel service
+  tags:
+    - redis
+    - sentinel
+- name: Create Redis Sentinel systemd service file
+  ansible.builtin.template:
+    src: redis-sentinel@.service.j2
+    dest: /etc/systemd/system/redis-sentinel@.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_service_mgr == "systemd"
+  notify: Restart Redis Sentinel service
+  tags:
+    - redis
+    - sentinel
+- name: Create Redis Sentinel init.d service file
+  ansible.builtin.template:
+    src: sentinel.init.j2
+    dest: /etc/init.d/redis-sentinel{{ item.port }}
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ redis_sentinels | default([]) }}"
+  when: ansible_service_mgr == "sysvinit"
+  notify: Restart Redis Sentinel service
+  tags:
+    - redis
+    - sentinel
+- name: Create Redis Sentinel upstart service file
+  ansible.builtin.template:
+    src: sentinel.upstart.conf.j2
+    dest: /etc/init/redis-sentinel{{ item.port }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ redis_sentinels | default([]) }}"
+  when: ansible_service_mgr == "upstart"
+  notify: Restart Redis Sentinel service
+  tags:
+    - redis
+    - sentinel
+- name: Enable and start Redis Sentinel systemd service
+  ansible.builtin.systemd:
+    name: redis-sentinel@{{ item.port }}
+    state: started
+    enabled: true
+    daemon_reload: true
+  loop: "{{ redis_sentinels | default([]) }}"
+  when: ansible_service_mgr == "systemd"
+  tags:
+    - redis
+    - sentinel
+- name: Enable and start Redis Sentinel init.d service
+  ansible.builtin.service:
+    name: redis-sentinel{{ item.port }}
+    state: started
+    enabled: true
+  loop: "{{ redis_sentinels | default([]) }}"
+  when: ansible_service_mgr != "systemd"
+  tags:
+    - redis
+    - sentinel
