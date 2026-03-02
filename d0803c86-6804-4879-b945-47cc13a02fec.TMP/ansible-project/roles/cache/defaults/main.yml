@@ -1,0 +1,29 @@
+---
+memcached_memory: "64"
+memcached_port: "11211"
+memcached_listen: 0.0.0.0
+memcached_maxconn: "1024"
+memcached_user: memcache
+redis_servers:
+  - port: "6379"
+    requirepass: redis_secure_password_123
+redis_install_dir: /usr
+redis_user: redis
+redis_group: redis
+redis_piddir: /var/run/redis
+redis_logdir: /var/log/redis
+redis_bind: 127.0.0.1
+redis_maxmemory: "0"
+redis_maxmemory_policy: noeviction
+redis_timeout: "0"
+redis_loglevel: notice
+redis_databases: "16"
+redis_save:
+  - 900 1
+  - 300 10
+  - 60 10000
+redis_rdbcompression: "yes"
+redis_dbfilename: dump.rdb
+redis_appendonly: "no"
+redis_appendfsync: everysec
+redis_nofile_limit: "10240"
