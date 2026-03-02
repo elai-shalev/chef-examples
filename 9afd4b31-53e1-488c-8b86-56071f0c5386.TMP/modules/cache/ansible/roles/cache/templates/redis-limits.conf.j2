@@ -1,0 +1,2 @@
+{{ redis_user | default('redis') }} soft nofile {{ redis_maxclients | default('10000') }}
+{{ redis_user | default('redis') }} hard nofile {{ redis_maxclients | default('10000') }}

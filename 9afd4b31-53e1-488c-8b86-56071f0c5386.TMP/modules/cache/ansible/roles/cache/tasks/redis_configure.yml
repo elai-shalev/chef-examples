@@ -1,0 +1,63 @@
+---
+- name: Create Redis configuration directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  loop:
+    - /etc/redis
+    - /var/lib/redis
+    - /var/lib/redis/6379
+    - /var/run/redis
+- name: Create Redis configuration file
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/6379.conf
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0644"
+  vars:
+    port: "6379"
+    requirepass: "{{ redis_servers[0].requirepass | default('') }}"
+  notify: Restart Redis
+- name: Detect init system
+  ansible.builtin.set_fact:
+    redis_init_system: "{{ 'systemd' if ansible_service_mgr == 'systemd' else ('upstart' if ansible_service_mgr == 'upstart' else 'initd') }}"
+- name: Create systemd service file
+  ansible.builtin.template:
+    src: redis@.service.j2
+    dest: /etc/systemd/system/redis@.service
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    user: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+  when: redis_init_system == 'systemd'
+  notify: Reload systemd
+- name: Create init.d service file
+  ansible.builtin.template:
+    src: redis.init.j2
+    dest: /etc/init.d/redis6379
+    owner: root
+    group: root
+    mode: "0755"
+  vars:
+    port: "6379"
+    user: "{{ redis_user | default('redis') }}"
+    requirepass: "{{ redis_servers[0].requirepass | default('') }}"
+  when: redis_init_system == 'initd'
+- name: Create upstart service file
+  ansible.builtin.template:
+    src: redis.upstart.conf.j2
+    dest: /etc/init/redis6379.conf
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    port: "6379"
+    user: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+  when: redis_init_system == 'upstart'

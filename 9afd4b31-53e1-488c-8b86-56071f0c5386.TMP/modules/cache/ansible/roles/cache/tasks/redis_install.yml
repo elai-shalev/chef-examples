@@ -1,0 +1,52 @@
+---
+- name: Install Redis dependencies
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - tcl
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Install Redis dependencies (RedHat)
+  ansible.builtin.package:
+    name:
+      - gcc
+      - make
+      - tcl
+    state: present
+  when: ansible_os_family == "RedHat"
+- name: Create Redis user
+  ansible.builtin.user:
+    name: "{{ redis_user | default('redis') }}"
+    system: true
+    group: "{{ redis_group | default('redis') }}"
+    shell: /bin/false
+    home: "{{ redis_home_dir | default('/var/lib/redis') }}"
+    create_home: true
+- name: Download Redis source
+  ansible.builtin.get_url:
+    url: http://download.redis.io/releases/redis-{{ redis_version | default('6.2.6') }}.tar.gz
+    dest: /tmp/redis-{{ redis_version | default('6.2.6') }}.tar.gz
+    checksum: "{{ redis_checksum | default('') }}"
+  register: redis_download
+  when: redis_install_from == "source"
+- name: Extract Redis source
+  ansible.builtin.unarchive:
+    src: /tmp/redis-{{ redis_version | default('6.2.6') }}.tar.gz
+    dest: /tmp
+    remote_src: true
+  when: redis_install_from == "source" and redis_download.changed
+- name: Compile and install Redis
+  ansible.builtin.shell: "cd /tmp/redis-{{ redis_version | default('6.2.6') }}\nmake\nmake install\n"
+  args:
+    creates: /usr/local/bin/redis-server
+  when: redis_install_from == "source" and redis_download.changed
+- name: Install Redis from package (Debian)
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+  when: redis_install_from == "package" and ansible_os_family == "Debian"
+- name: Install Redis from package (RedHat)
+  ansible.builtin.yum:
+    name: redis
+    state: present
+  when: redis_install_from == "package" and ansible_os_family == "RedHat"

@@ -1,0 +1,13 @@
+---
+- name: Enable and start Redis service (systemd)
+  ansible.builtin.systemd:
+    name: redis@6379
+    state: started
+    enabled: true
+  when: ansible_service_mgr == 'systemd'
+- name: Enable and start Redis service (init.d)
+  ansible.builtin.service:
+    name: redis6379
+    state: started
+    enabled: true
+  when: ansible_service_mgr != 'systemd'

@@ -1,0 +1,14 @@
+---
+- name: Update apt cache (Debian/Ubuntu)
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+- name: Include Redis prerequisites
+  ansible.builtin.import_tasks: redis_prereqs.yml
+  when: not redis_package_install | default(true)
+- name: Include Redis installation
+  ansible.builtin.import_tasks: redis_install.yml
+  when: not redis_bypass_setup | default(false)
+- name: Include Redis ulimit configuration
+  ansible.builtin.import_tasks: redis_ulimit.yml

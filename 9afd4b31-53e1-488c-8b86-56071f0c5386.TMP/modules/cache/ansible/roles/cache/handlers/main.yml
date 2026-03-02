@@ -1,0 +1,10 @@
+---
+- name: Restart Redis
+  ansible.builtin.service:
+    name: "{{ 'redis@' + redis_port if ansible_service_mgr == 'systemd' else 'redis' + redis_port }}"
+    state: restarted
+  listen: Restart Redis
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  listen: Reload systemd
