@@ -1,7 +1,14 @@
 ---
-- name: Ensure Redis services are enabled and started
+- name: Enable and start Redis service (systemd)
   ansible.builtin.systemd:
-    name: redis{{ item.port }}
-    enabled: true
+    name: redis@6379
     state: started
-  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+    enabled: true
+    daemon_reload: true
+  when: ansible_service_mgr == 'systemd'
+- name: Enable and start Redis service (non-systemd)
+  ansible.builtin.service:
+    name: redis6379
+    state: started
+    enabled: true
+  when: ansible_service_mgr != 'systemd'

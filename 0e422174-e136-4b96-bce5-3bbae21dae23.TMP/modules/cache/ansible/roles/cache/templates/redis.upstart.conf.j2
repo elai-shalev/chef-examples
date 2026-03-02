@@ -1,4 +1,4 @@
-description "Redis Server {{ port }}"
+description "Redis Server {{ redis_port | default('6379') }}"
 
 start on runlevel [23]
 stop on shutdown
@@ -8,8 +8,8 @@ setgid redis
 
 respawn
 
-exec /usr/local/bin/redis-server /etc/redis/{{ port }}.conf
+exec /usr/local/bin/redis-server /etc/redis/{{ redis_port | default('6379') }}.conf
 
 post-stop script
-    rm -f /var/run/redis/{{ port }}.pid
+    rm -f /var/run/redis/{{ redis_port | default('6379') }}.pid
 end script

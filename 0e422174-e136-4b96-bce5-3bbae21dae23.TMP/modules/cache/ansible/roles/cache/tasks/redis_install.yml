@@ -1,14 +1,22 @@
 ---
+- name: Create Redis user
+  ansible.builtin.user:
+    name: redis
+    system: true
+    shell: /bin/false
+    home: /var/lib/redis
+    create_home: true
 - name: Create Redis directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
+    owner: redis
+    group: redis
     mode: "0755"
   loop:
-    - "{{ redis_install_dir | default('/usr/local/bin') }}"
-    - "{{ redis_data_dir | default('/var/lib/redis') }}"
-    - "{{ redis_log_dir | default('/var/log/redis') }}"
-    - "{{ redis_pid_dir | default('/var/run/redis') }}"
+    - /var/lib/redis
+    - /etc/redis
+    - /var/run/redis
 - name: Download Redis source
   ansible.builtin.get_url:
     url: http://download.redis.io/releases/redis-{{ redis_version | default('3.2.11') }}.tar.gz
@@ -19,25 +27,10 @@
     src: /tmp/redis-{{ redis_version | default('3.2.11') }}.tar.gz
     dest: /tmp
     remote_src: true
+    creates: /tmp/redis-{{ redis_version | default('3.2.11') }}/Makefile
 - name: Compile and install Redis
-  ansible.builtin.shell: "cd /tmp/redis-{{ redis_version | default('3.2.11') }}\nmake\nmake install PREFIX={{ redis_install_dir | default('/usr/local') }}\n"
-  args:
-    creates: "{{ redis_install_dir | default('/usr/local/bin') }}/redis-server"
-- name: Create Redis user
-  ansible.builtin.user:
-    name: redis
-    system: true
-    shell: /bin/false
-    home: "{{ redis_data_dir | default('/var/lib/redis') }}"
-    createhome: false
-- name: Set permissions on Redis directories
-  ansible.builtin.file:
-    path: "{{ item }}"
-    owner: redis
-    group: redis
-    mode: "0755"
-    recurse: true
-  loop:
-    - "{{ redis_data_dir | default('/var/lib/redis') }}"
-    - "{{ redis_log_dir | default('/var/log/redis') }}"
-    - "{{ redis_pid_dir | default('/var/run/redis') }}"
+  ansible.builtin.shell:
+    cmd: "cd /tmp/redis-{{ redis_version | default('3.2.11') }}\nmake\nmake install\n"
+    creates: /usr/local/bin/redis-server
+  environment:
+    CFLAGS: -march=native

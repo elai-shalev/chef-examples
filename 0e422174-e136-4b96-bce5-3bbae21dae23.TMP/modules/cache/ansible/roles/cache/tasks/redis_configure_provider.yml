@@ -1,0 +1,14 @@
+---
+- name: Create Redis configuration directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  loop:
+    - /etc/redis
+    - /var/lib/redis
+    - /var/log/redis
+- name: Configure Redis instance
+  ansible.builtin.include_tasks: redis_configure.yml

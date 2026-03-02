@@ -2,11 +2,10 @@
 galaxy_info:
   role_name: cache
   author: Ansible Migration Team
-  description: Installs and configures Redis and Memcached
+  description: Role for installing and configuring Redis and Memcached
   company: Example Corp
   license: MIT
-  min_ansible_version: "2.9"
-  standalone: true
+  min_ansible_version: 2.9
   platforms:
     - name: Ubuntu
       versions:
@@ -18,7 +17,8 @@ galaxy_info:
         - buster
     - name: EL
       versions:
-        - all
+        - 7
+        - 8
   galaxy_tags:
     - cache
     - redis
