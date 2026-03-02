@@ -1,0 +1,78 @@
+---
+- name: Install Redis dependencies
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - tcl
+    state: present
+  when: redis_install_from_source | default(false)
+  tags:
+    - redis
+    - cache
+- name: Create Redis user
+  ansible.builtin.user:
+    name: "{{ redis_user }}"
+    system: true
+    group: "{{ redis_group }}"
+    shell: /bin/false
+    home: "{{ redis_home_dir }}"
+    createhome: false
+  tags:
+    - redis
+    - cache
+- name: Create Redis group
+  ansible.builtin.group:
+    name: "{{ redis_group }}"
+    system: true
+  tags:
+    - redis
+    - cache
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0755"
+  loop:
+    - "{{ redis_conf_dir }}"
+    - "{{ redis_log_dir }}"
+    - "{{ redis_data_dir }}"
+    - /var/run/redis
+  tags:
+    - redis
+    - cache
+- name: Install Redis from package
+  ansible.builtin.package:
+    name: redis-server
+    state: present
+  when: not redis_install_from_source | default(false)
+  tags:
+    - redis
+    - cache
+- name: Download Redis source
+  ansible.builtin.get_url:
+    url: http://download.redis.io/releases/redis-{{ redis_version }}.tar.gz
+    dest: /tmp/redis-{{ redis_version }}.tar.gz
+    mode: "0644"
+  when: redis_install_from_source | default(false)
+  tags:
+    - redis
+    - cache
+- name: Extract Redis source
+  ansible.builtin.unarchive:
+    src: /tmp/redis-{{ redis_version }}.tar.gz
+    dest: /tmp
+    remote_src: true
+  when: redis_install_from_source | default(false)
+  tags:
+    - redis
+    - cache
+- name: Compile and install Redis
+  ansible.builtin.shell: "cd /tmp/redis-{{ redis_version }}\nmake\nmake install\n"
+  args:
+    creates: /usr/local/bin/redis-server
+  when: redis_install_from_source | default(false)
+  tags:
+    - redis
+    - cache

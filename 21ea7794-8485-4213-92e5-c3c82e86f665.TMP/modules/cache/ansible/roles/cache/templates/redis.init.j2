@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# Simple Redis init.d script conceived to work on Linux systems
+# as it does use of the /proc filesystem.
+
+### BEGIN INIT INFO
+# Provides:     redis{{ item.port }}
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    Redis data structure server
+# Description:          Redis data structure server. See https://redis.io
+### END INIT INFO
+
+REDISPORT={{ item.port }}
+EXEC=/usr/bin/redis-server
+CLIEXEC=/usr/bin/redis-cli
+
+PIDFILE=/var/run/redis/redis_${REDISPORT}.pid
+CONF="{{ redis_conf_dir }}/${REDISPORT}.conf"
+
+case "$1" in
+    start)
+        if [ -f $PIDFILE ]
+        then
+                echo "$PIDFILE exists, process is already running or crashed"
+        else
+                echo "Starting Redis server..."
+                mkdir -p /var/run/redis
+                chown {{ redis_user }}:{{ redis_group }} /var/run/redis
+                
+                if [ -n "{{ item.requirepass | default('') }}" ]; then
+                    su {{ redis_user }} -c "$EXEC $CONF"
+                else
+                    su {{ redis_user }} -c "$EXEC $CONF"
+                fi
+        fi
+        ;;
+    stop)
+        if [ ! -f $PIDFILE ]
+        then
+                echo "$PIDFILE does not exist, process is not running"
+        else
+                PID=$(cat $PIDFILE)
+                echo "Stopping ..."
+                if [ -n "{{ item.requirepass | default('') }}" ]; then
+                    $CLIEXEC -p $REDISPORT -a {{ item.requirepass }} shutdown
+                else
+                    $CLIEXEC -p $REDISPORT shutdown
+                fi
+                while [ -x /proc/${PID} ]
+                do
+                    echo "Waiting for Redis to shutdown ..."
+                    sleep 1
+                done
+                echo "Redis stopped"
+        fi
+        ;;
+    status)
+        if [ ! -f $PIDFILE ]
+        then
+                echo "Redis is not running"
+                exit 1
+        else
+                PID=$(cat $PIDFILE)
+                if [ -x /proc/${PID} ]
+                then
+                    echo "Redis is running"
+                    exit 0
+                else
+                    echo "Redis is not running"
+                    exit 1
+                fi
+        fi
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Please use start, stop, restart or status as first argument"
+        ;;
+esac

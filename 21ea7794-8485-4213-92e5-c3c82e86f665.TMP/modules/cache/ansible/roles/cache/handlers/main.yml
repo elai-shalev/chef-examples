@@ -1,0 +1,21 @@
+---
+- name: Restart memcached
+  ansible.builtin.service:
+    name: memcached
+    state: restarted
+  listen: restart memcached
+- name: Restart redis
+  ansible.builtin.systemd:
+    name: redis@{{ item.port }}
+    state: restarted
+    daemon_reload: true
+  loop: "{{ redis_instances }}"
+  when: ansible_service_mgr == 'systemd'
+  listen: restart redis
+- name: Restart redis non-systemd
+  ansible.builtin.service:
+    name: redis{{ item.port }}
+    state: restarted
+  loop: "{{ redis_instances }}"
+  when: ansible_service_mgr != 'systemd'
+  listen: restart redis non-systemd
