@@ -1,0 +1,77 @@
+# Redis configuration file
+
+# Network
+bind {{ redis_bind | default('127.0.0.1') }}
+port {{ redis_port | default('6379') }}
+protected-mode {{ redis_protected_mode | default('yes') }}
+tcp-backlog {{ redis_tcp_backlog | default('511') }}
+timeout {{ redis_timeout | default('0') }}
+tcp-keepalive {{ redis_tcp_keepalive | default('300') }}
+
+# General
+daemonize {{ redis_daemonize | default('yes') }}
+supervised {{ redis_supervised | default('no') }}
+pidfile {{ redis_pidfile | default('/var/run/redis/redis_') }}{{ redis_port | default('6379') }}.pid
+loglevel {{ redis_loglevel | default('notice') }}
+logfile {{ redis_logfile | default('/var/log/redis/redis_') }}{{ redis_port | default('6379') }}.log
+databases {{ redis_databases | default('16') }}
+
+# Snapshotting
+{% if redis_save is defined %}
+{% for save_rule in redis_save %}
+save {{ save_rule }}
+{% endfor %}
+{% else %}
+save 900 1
+save 300 10
+save 60 10000
+{% endif %}
+stop-writes-on-bgsave-error {{ redis_stop_writes_on_bgsave_error | default('yes') }}
+rdbcompression {{ redis_rdbcompression | default('yes') }}
+rdbchecksum {{ redis_rdbchecksum | default('yes') }}
+dbfilename {{ redis_dbfilename | default('dump.rdb') }}
+dir {{ redis_dir | default('/var/lib/redis/') }}{{ redis_port | default('6379') }}
+
+# Security
+{% if redis_requirepass is defined and redis_requirepass %}
+requirepass {{ redis_requirepass }}
+{% endif %}
+
+# Memory management
+maxmemory {{ redis_maxmemory | default('0') }}
+maxmemory-policy {{ redis_maxmemory_policy | default('noeviction') }}
+maxmemory-samples {{ redis_maxmemory_samples | default('5') }}
+
+# Append only mode
+appendonly {{ redis_appendonly | default('no') }}
+appendfilename {{ redis_appendfilename | default('"appendonly.aof"') }}
+appendfsync {{ redis_appendfsync | default('everysec') }}
+no-appendfsync-on-rewrite {{ redis_no_appendfsync_on_rewrite | default('no') }}
+auto-aof-rewrite-percentage {{ redis_auto_aof_rewrite_percentage | default('100') }}
+auto-aof-rewrite-min-size {{ redis_auto_aof_rewrite_min_size | default('64mb') }}
+
+# Slow log
+slowlog-log-slower-than {{ redis_slowlog_log_slower_than | default('10000') }}
+slowlog-max-len {{ redis_slowlog_max_len | default('128') }}
+
+# Latency monitor
+latency-monitor-threshold {{ redis_latency_monitor_threshold | default('0') }}
+
+# Event notification
+notify-keyspace-events {{ redis_notify_keyspace_events | default('""') }}
+
+# Advanced config
+hash-max-ziplist-entries {{ redis_hash_max_ziplist_entries | default('512') }}
+hash-max-ziplist-value {{ redis_hash_max_ziplist_value | default('64') }}
+list-max-ziplist-size {{ redis_list_max_ziplist_size | default('-2') }}
+list-compress-depth {{ redis_list_compress_depth | default('0') }}
+set-max-intset-entries {{ redis_set_max_intset_entries | default('512') }}
+zset-max-ziplist-entries {{ redis_zset_max_ziplist_entries | default('128') }}
+zset-max-ziplist-value {{ redis_zset_max_ziplist_value | default('64') }}
+hll-sparse-max-bytes {{ redis_hll_sparse_max_bytes | default('3000') }}
+activerehashing {{ redis_activerehashing | default('yes') }}
+client-output-buffer-limit normal {{ redis_client_output_buffer_limit_normal | default('0 0 0') }}
+client-output-buffer-limit slave {{ redis_client_output_buffer_limit_slave | default('256mb 64mb 60') }}
+client-output-buffer-limit pubsub {{ redis_client_output_buffer_limit_pubsub | default('32mb 8mb 60') }}
+hz {{ redis_hz | default('10') }}
+aof-rewrite-incremental-fsync {{ redis_aof_rewrite_incremental_fsync | default('yes') }}

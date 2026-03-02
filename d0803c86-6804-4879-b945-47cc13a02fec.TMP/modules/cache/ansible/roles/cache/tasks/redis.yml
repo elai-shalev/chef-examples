@@ -1,0 +1,97 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  when: ansible_os_family == "Debian"
+- name: Install Redis package
+  ansible.builtin.package:
+    name: redis-server
+    state: present
+- name: Install Redis dependencies
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - build-essential
+    - tcl
+  when: ansible_os_family == "Debian"
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  loop:
+    - /etc/redis
+    - /var/lib/redis
+    - /var/lib/redis/6379
+    - /var/run/redis
+- name: Configure Redis ulimit settings for Debian
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-session
+    line: session required pam_limits.so
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Configure Redis ulimit settings for RedHat
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/system-auth
+    line: session required pam_limits.so
+    state: present
+  when: ansible_os_family == "RedHat"
+- name: Set Redis user limits
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: redis soft nofile 10240
+    state: present
+- name: Set Redis user hard limits
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: redis hard nofile 10240
+    state: present
+- name: Stop and disable default Redis service
+  ansible.builtin.service:
+    name: redis-server
+    state: stopped
+    enabled: false
+  register: redis_service_stop
+  failed_when:
+    - redis_service_stop.failed is defined
+    - redis_service_stop.failed
+    - "'Could not find the requested service' not in redis_service_stop.msg"
+  when: ansible_os_family == "Debian"
+- name: Create Redis configuration
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/6379.conf
+    owner: redis
+    group: redis
+    mode: "0644"
+  vars:
+    redis_port: "{{ redis_servers[0].port }}"
+    redis_requirepass: "{{ redis_servers[0].requirepass }}"
+  notify: Restart redis
+- name: Create Redis init script
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0755"
+  with_items:
+    - src: redis.init.j2
+      dest: /etc/init.d/redis6379
+      when: ansible_service_mgr != "systemd"
+    - src: redis@.service.j2
+      dest: /etc/systemd/system/redis@.service
+      when: ansible_service_mgr == "systemd"
+    - src: redis.upstart.conf.j2
+      dest: /etc/init/redis6379.conf
+      when: ansible_service_mgr == "upstart"
+  when: item.when | bool
+  vars:
+    redis_port: "{{ redis_servers[0].port }}"
+    redis_requirepass: "{{ redis_servers[0].requirepass }}"
+    redis_install_dir: /usr
+    redis_piddir: /var/run/redis
+  notify: Restart redis

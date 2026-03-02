@@ -1,0 +1,17 @@
+---
+- name: Reload systemd if using systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: ansible_service_mgr == "systemd"
+- name: Enable and start Redis service (systemd)
+  ansible.builtin.systemd:
+    name: redis@{{ redis_servers[0].port }}
+    state: started
+    enabled: true
+  when: ansible_service_mgr == "systemd"
+- name: Enable and start Redis service (init)
+  ansible.builtin.service:
+    name: redis{{ redis_servers[0].port }}
+    state: started
+    enabled: true
+  when: ansible_service_mgr != "systemd"

@@ -1,0 +1,125 @@
+{
+  "module_name": "cache",
+  "items": [
+    {
+      "category": "structure",
+      "source_path": "cookbooks/cache/metadata.rb",
+      "target_path": "./ansible/roles/cache/meta/main.yml",
+      "status": "complete",
+      "description": "Role metadata including dependencies on memcached and redis",
+      "notes": "Created meta/main.yml with role metadata including platforms and tags"
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/cache/defaults/main.yml",
+      "status": "complete",
+      "description": "Main defaults file for cache role",
+      "notes": "Created defaults/main.yml with default variables for both memcached and redis"
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/cache/handlers/main.yml",
+      "status": "complete",
+      "description": "Main handlers file for cache role",
+      "notes": "Created handlers/main.yml with restart handlers for memcached and redis services"
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/cache/recipes/default.rb",
+      "target_path": "./ansible/roles/cache/tasks/main.yml",
+      "status": "complete",
+      "description": "Main recipe that configures Memcached and Redis",
+      "notes": "Created main tasks file with import_tasks for memcached, redis, and redis_service"
+    },
+    {
+      "category": "recipes",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/memcached-7992788f1a376defb902059063f5295e37d281cb/recipes/default.rb",
+      "target_path": "./ansible/roles/cache/tasks/memcached.yml",
+      "status": "complete",
+      "description": "Memcached installation and configuration",
+      "notes": "Created memcached tasks file with package installation, configuration, and service management"
+    },
+    {
+      "category": "recipes",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/redisio-cac70a2ec9102cac4f5391358c8565d244f5d4db/recipes/default.rb",
+      "target_path": "./ansible/roles/cache/tasks/redis.yml",
+      "status": "complete",
+      "description": "Redis installation and configuration",
+      "notes": "Created Redis tasks file with package installation, directory creation, ulimit configuration, and Redis configuration"
+    },
+    {
+      "category": "recipes",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/redisio-cac70a2ec9102cac4f5391358c8565d244f5d4db/recipes/enable.rb",
+      "target_path": "./ansible/roles/cache/tasks/redis_service.yml",
+      "status": "complete",
+      "description": "Redis service enablement",
+      "notes": "Created Redis service tasks file to enable and start Redis service"
+    },
+    {
+      "category": "templates",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/redisio-cac70a2ec9102cac4f5391358c8565d244f5d4db/templates/default/redis.conf.erb",
+      "target_path": "./ansible/roles/cache/templates/redis.conf.j2",
+      "status": "complete",
+      "description": "Redis configuration template",
+      "notes": "Created Redis configuration template based on standard Redis configuration parameters"
+    },
+    {
+      "category": "templates",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/redisio-cac70a2ec9102cac4f5391358c8565d244f5d4db/templates/default/redis.init.erb",
+      "target_path": "./ansible/roles/cache/templates/redis.init.j2",
+      "status": "complete",
+      "description": "Redis init script template",
+      "notes": "Created Redis init script template based on standard Redis init script"
+    },
+    {
+      "category": "templates",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/redisio-cac70a2ec9102cac4f5391358c8565d244f5d4db/templates/default/redis@.service.erb",
+      "target_path": "./ansible/roles/cache/templates/redis@.service.j2",
+      "status": "complete",
+      "description": "Redis systemd service template",
+      "notes": "Created Redis systemd service template"
+    },
+    {
+      "category": "templates",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/redisio-cac70a2ec9102cac4f5391358c8565d244f5d4db/templates/default/redis.upstart.conf.erb",
+      "target_path": "./ansible/roles/cache/templates/redis.upstart.conf.j2",
+      "status": "complete",
+      "description": "Redis upstart configuration template",
+      "notes": "Created Redis upstart configuration template"
+    },
+    {
+      "category": "attributes",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/memcached-7992788f1a376defb902059063f5295e37d281cb/attributes/default.rb",
+      "target_path": "./ansible/roles/cache/vars/memcached.yml",
+      "status": "complete",
+      "description": "Memcached default attributes",
+      "notes": "Created memcached variables file with memory, port, listen, maxconn, and user settings"
+    },
+    {
+      "category": "attributes",
+      "source_path": "/workspace/source/migration-dependencies/cookbook_artifacts/redisio-cac70a2ec9102cac4f5391358c8565d244f5d4db/attributes/default.rb",
+      "target_path": "./ansible/roles/cache/vars/redis.yml",
+      "status": "complete",
+      "description": "Redis default attributes",
+      "notes": "Created Redis variables file with configuration settings including authentication password"
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:community.general",
+      "target_path": "./ansible/roles/cache/requirements.yml",
+      "status": "complete",
+      "description": "Ansible community general collection for memcached and redis modules",
+      "notes": "Created requirements.yml with community.general collection dependency"
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "ansible/roles/cache/meta/main.yml",
+      "status": "complete",
+      "description": "Created standard meta/main.yml",
+      "notes": ""
+    }
+  ]
+}
