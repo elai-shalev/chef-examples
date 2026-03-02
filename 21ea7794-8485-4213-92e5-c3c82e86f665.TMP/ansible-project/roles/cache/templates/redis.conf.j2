@@ -1,0 +1,62 @@
+# Redis configuration file
+
+# General
+port {{ item.port }}
+{% if item.bind is defined and item.bind %}
+bind {{ item.bind }}
+{% endif %}
+daemonize {{ item.daemonize | default('yes') }}
+{% if item.unixsocket is defined and item.unixsocket %}
+unixsocket {{ item.unixsocket }}
+{% endif %}
+{% if item.unixsocketperm is defined and item.unixsocketperm %}
+unixsocketperm {{ item.unixsocketperm }}
+{% endif %}
+timeout {{ item.timeout | default(0) }}
+loglevel {{ item.loglevel | default('notice') }}
+logfile {{ item.logfile | default('/var/log/redis/redis-server.log') }}
+databases {{ item.databases | default(16) }}
+
+# Snapshotting
+{% if item.save is defined and item.save %}
+{% for save_option in item.save %}
+save {{ save_option }}
+{% endfor %}
+{% else %}
+save 900 1
+save 300 10
+save 60 10000
+{% endif %}
+rdbcompression {{ item.rdbcompression | default('yes') }}
+dbfilename {{ item.dbfilename | default('dump.rdb') }}
+dir {{ item.dir | default('/var/lib/redis') }}
+
+# Replication
+# These settings are intentionally removed as per ruby_block fix_redis_config
+
+# Security
+{% if item.requirepass is defined and item.requirepass %}
+requirepass {{ item.requirepass }}
+{% endif %}
+
+# Limits
+{% if item.maxmemory is defined and item.maxmemory %}
+maxmemory {{ item.maxmemory }}
+{% endif %}
+{% if item.maxmemory_policy is defined and item.maxmemory_policy %}
+maxmemory-policy {{ item.maxmemory_policy }}
+{% endif %}
+{% if item.maxmemory_samples is defined and item.maxmemory_samples %}
+maxmemory-samples {{ item.maxmemory_samples }}
+{% endif %}
+
+# Append Only Mode
+appendonly {{ item.appendonly | default('no') }}
+appendfsync {{ item.appendfsync | default('everysec') }}
+no-appendfsync-on-rewrite {{ item.no_appendfsync_on_rewrite | default('no') }}
+auto-aof-rewrite-percentage {{ item.auto_aof_rewrite_percentage | default(100) }}
+auto-aof-rewrite-min-size {{ item.auto_aof_rewrite_min_size | default('64mb') }}
+
+# Advanced config
+activerehashing {{ item.activerehashing | default('yes') }}
+protected-mode {{ item.protected_mode | default('yes') }}

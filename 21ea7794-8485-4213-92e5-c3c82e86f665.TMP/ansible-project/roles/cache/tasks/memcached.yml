@@ -1,0 +1,45 @@
+---
+- name: Install memcached package
+  ansible.builtin.package:
+    name: memcached
+    state: present
+  tags:
+    - memcached
+    - cache
+- name: Create memcached configuration file
+  ansible.builtin.template:
+    src: memcached.conf.j2
+    dest: /etc/memcached.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart memcached
+  tags:
+    - memcached
+    - cache
+- name: Set memcached ulimit
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: memcache soft nofile {{ memcached_ulimit }}
+    regexp: ^memcache soft nofile
+    state: present
+  tags:
+    - memcached
+    - cache
+- name: Set memcached ulimit (hard)
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: memcache hard nofile {{ memcached_ulimit }}
+    regexp: ^memcache hard nofile
+    state: present
+  tags:
+    - memcached
+    - cache
+- name: Enable and start memcached service
+  ansible.builtin.service:
+    name: memcached
+    state: started
+    enabled: true
+  tags:
+    - memcached
+    - cache

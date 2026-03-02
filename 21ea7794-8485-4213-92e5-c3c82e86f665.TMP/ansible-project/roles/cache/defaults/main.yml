@@ -1,0 +1,29 @@
+---
+memcached_memory: 64
+memcached_port: 11211
+memcached_udp_port: 11211
+memcached_listen: 127.0.0.1
+memcached_max_connections: 1024
+memcached_max_object_size: 1m
+memcached_logfile: /var/log/memcached.log
+redis_user: redis
+redis_group: redis
+redis_home_dir: /var/lib/redis
+redis_conf_dir: /etc/redis
+redis_log_dir: /var/log/redis
+redis_data_dir: /var/lib/redis
+redis_version: 6.2.6
+redis_install_from_source: false
+redis_instances:
+  - port: 6379
+    bind: 127.0.0.1
+    daemonize: "yes"
+    loglevel: notice
+    logfile: /var/log/redis/redis-server.log
+    databases: 16
+    rdbcompression: "yes"
+    dbfilename: dump.rdb
+    dir: /var/lib/redis
+    appendonly: "no"
+    appendfsync: everysec
+    activerehashing: "yes"
