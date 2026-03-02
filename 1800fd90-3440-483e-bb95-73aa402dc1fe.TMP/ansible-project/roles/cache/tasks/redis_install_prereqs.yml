@@ -1,0 +1,17 @@
+---
+- name: Install tar package
+  ansible.builtin.package:
+    name: tar
+    state: present
+- name: Install build-essential package (Debian)
+  ansible.builtin.package:
+    name: build-essential
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Install development tools (RHEL)
+  ansible.builtin.package:
+    name:
+      - gcc
+      - make
+    state: present
+  when: ansible_os_family == "RedHat"

@@ -1,0 +1,23 @@
+---
+- name: Create limits.d file for Redis
+  ansible.builtin.copy:
+    dest: /etc/security/limits.d/redis.conf
+    content: "redis soft nofile 65536\nredis hard nofile 65536\n"
+    owner: root
+    group: root
+    mode: "0644"
+- name: Configure PAM limits for Debian
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/su
+    line: session    required   pam_limits.so
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Configure PAM limits for sudo on Debian
+  ansible.builtin.copy:
+    dest: /etc/pam.d/sudo
+    content: "#%PAM-1.0\nauth       required     pam_env.so readenv=1 user_readenv=0\nauth       required     pam_env.so readenv=1 envfile=/etc/default/locale user_readenv=0\n\
+      @include common-auth\n@include common-account\n@include common-session-noninteractive\nsession    required     pam_limits.so\n"
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_os_family == "Debian"
