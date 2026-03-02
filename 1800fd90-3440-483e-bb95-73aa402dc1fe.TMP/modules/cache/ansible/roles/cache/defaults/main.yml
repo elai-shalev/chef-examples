@@ -1,0 +1,18 @@
+---
+memcached_memory: 64
+memcached_port: 11211
+memcached_connections: 1024
+memcached_user: memcache
+memcached_listen: 0.0.0.0
+memcached_threads: 4
+redis_servers:
+  - port: "6379"
+    requirepass: redis_secure_password_123
+redis_package_install: true
+redis_version: 3.2.11
+redis_user: redis
+redis_group: redis
+redis_base_dir: /var/lib/redis
+redis_log_dir: /var/log/redis
+redis_pid_dir: /var/run/redis
+redis_conf_dir: /etc/redis

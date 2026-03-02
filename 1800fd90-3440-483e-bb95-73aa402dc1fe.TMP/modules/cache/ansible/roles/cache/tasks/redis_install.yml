@@ -1,0 +1,30 @@
+---
+- name: Install Redis from package
+  ansible.builtin.package:
+    name: redis-server
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Install Redis from package (RHEL)
+  ansible.builtin.package:
+    name: redis
+    state: present
+  when: ansible_os_family == "RedHat"
+- name: Create Redis user
+  ansible.builtin.user:
+    name: redis
+    system: true
+    shell: /bin/false
+    home: /var/lib/redis
+    create_home: true
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  loop:
+    - /etc/redis
+    - /var/lib/redis
+    - /var/run/redis
+    - /var/log/redis

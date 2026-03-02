@@ -1,0 +1,23 @@
+[Unit]
+Description=Redis persistent key-value database
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/redis-server /etc/redis/%i.conf
+ExecStop=/usr/bin/redis-cli -p %i shutdown
+User=redis
+Group=redis
+RuntimeDirectory=redis/%i
+RuntimeDirectoryMode=0755
+Type=notify
+UMask=0077
+LimitNOFILE=65535
+NoNewPrivileges=true
+TimeoutStartSec=120
+TimeoutStopSec=120
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
