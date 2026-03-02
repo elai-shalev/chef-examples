@@ -1,0 +1,62 @@
+---
+- name: Set Redis instance variables
+  ansible.builtin.set_fact:
+    redis_port: "{{ redis_instance.port | default('6379') }}"
+    redis_name: "{{ redis_instance.name | default(redis_instance.port | default('6379')) }}"
+    redis_datadir: "{{ redis_instance.datadir | default('/var/lib/redis/' + (redis_instance.port | default('6379'))) }}"
+    redis_logdir: "{{ redis_instance.logdir | default('/var/log/redis/') }}"
+    redis_loglevel: "{{ redis_instance.loglevel | default('notice') }}"
+    redis_user: "{{ redis_instance.user | default('redis') }}"
+    redis_group: "{{ redis_instance.group | default('redis') }}"
+    redis_maxmemory: "{{ redis_instance.maxmemory | default('') }}"
+    redis_maxmemory_policy: "{{ redis_instance.maxmemory_policy | default('volatile-lru') }}"
+    redis_requirepass: "{{ redis_instance.requirepass | default('') }}"
+    redis_unixsocket: "{{ redis_instance.unixsocket | default('') }}"
+    redis_unixsocketperm: "{{ redis_instance.unixsocketperm | default('755') }}"
+- name: Create Redis data directory
+  ansible.builtin.file:
+    path: "{{ redis_datadir }}"
+    state: directory
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0755"
+- name: Create Redis log directory
+  ansible.builtin.file:
+    path: "{{ redis_logdir }}"
+    state: directory
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0755"
+- name: Create Redis configuration file
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/{{ redis_port }}.conf
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0644"
+  notify: Restart Redis
+- name: Create systemd service file
+  ansible.builtin.template:
+    src: redis@.service.j2
+    dest: /etc/systemd/system/redis@{{ redis_port }}.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_service_mgr == 'systemd'
+  notify: Reload systemd
+- name: Create init.d service file
+  ansible.builtin.template:
+    src: redis.init.j2
+    dest: /etc/init.d/redis{{ redis_port }}
+    owner: root
+    group: root
+    mode: "0755"
+  when: ansible_service_mgr != 'systemd' and ansible_service_mgr != 'upstart'
+- name: Create upstart service file
+  ansible.builtin.template:
+    src: redis.upstart.conf.j2
+    dest: /etc/init/redis{{ redis_port }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_service_mgr == 'upstart'

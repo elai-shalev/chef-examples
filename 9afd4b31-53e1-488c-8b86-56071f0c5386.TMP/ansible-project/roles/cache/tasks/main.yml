@@ -1,0 +1,26 @@
+---
+- name: Include Redis installation tasks
+  ansible.builtin.include_tasks: redis_install.yml
+  tags:
+    - redis
+    - redis_install
+- name: Include Redis ulimit configuration
+  ansible.builtin.include_tasks: redis_ulimit.yml
+  tags:
+    - redis
+    - redis_ulimit
+- name: Include Redis configuration tasks
+  ansible.builtin.include_tasks: redis_configure.yml
+  tags:
+    - redis
+    - redis_configure
+- name: Include Redis disable default service tasks
+  ansible.builtin.include_tasks: redis_disable_default.yml
+  tags:
+    - redis
+    - redis_disable_default
+- name: Include Redis enable service tasks
+  ansible.builtin.include_tasks: redis_enable.yml
+  tags:
+    - redis
+    - redis_enable

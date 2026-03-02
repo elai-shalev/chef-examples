@@ -1,0 +1,17 @@
+---
+- name: Create Redis configuration directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  loop:
+    - /etc/redis
+    - /var/lib/redis
+    - /var/run/redis
+- name: Configure Redis instances
+  ansible.builtin.include_tasks: redis_configure_instance.yml
+  loop: "{{ redis_servers }}"
+  loop_control:
+    loop_var: redis_instance

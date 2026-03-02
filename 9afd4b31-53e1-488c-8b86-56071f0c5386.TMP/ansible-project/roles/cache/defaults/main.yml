@@ -1,0 +1,19 @@
+---
+redis_version: 6.2.6
+redis_install_from: source
+redis_checksum: ""
+redis_user: redis
+redis_group: redis
+redis_home_dir: /var/lib/redis
+redis_maxclients: 10000
+redis_servers:
+  - port: 6379
+    name: "6379"
+    datadir: /var/lib/redis/6379
+    logdir: /var/log/redis
+    loglevel: notice
+    maxmemory: ""
+    maxmemory_policy: volatile-lru
+    requirepass: ""
+    unixsocket: ""
+    unixsocketperm: "755"
