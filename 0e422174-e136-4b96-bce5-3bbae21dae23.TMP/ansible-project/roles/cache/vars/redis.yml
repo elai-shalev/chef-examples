@@ -1,0 +1,10 @@
+---
+redis_version: 3.2.11
+redis_nofile_limit: 10240
+redis_servers:
+  - port: "6379"
+    requirepass: redis_secure_password_123
+redis_install_dir: /usr/local/bin
+redis_data_dir: /var/lib/redis
+redis_log_dir: /var/log/redis
+redis_pid_dir: /var/run/redis

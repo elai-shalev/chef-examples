@@ -1,0 +1,11 @@
+---
+- name: Restart memcached
+  ansible.builtin.service:
+    name: memcached
+    state: restarted
+  listen: restart memcached
+- name: Restart redis
+  ansible.builtin.service:
+    name: redis{{ redis_port | default('6379') }}
+    state: restarted
+  listen: restart redis
