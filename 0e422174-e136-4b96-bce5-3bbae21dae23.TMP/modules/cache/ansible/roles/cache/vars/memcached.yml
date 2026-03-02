@@ -1,0 +1,6 @@
+---
+memcached_memory: 64
+memcached_port: 11211
+memcached_connections: 1024
+memcached_listen: 0.0.0.0
+memcached_user: memcache

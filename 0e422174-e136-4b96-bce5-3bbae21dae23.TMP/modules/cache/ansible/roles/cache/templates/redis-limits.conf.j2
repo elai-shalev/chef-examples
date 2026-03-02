@@ -1,0 +1,2 @@
+redis soft nofile {{ redis_nofile_limit | default('10240') }}
+redis hard nofile {{ redis_nofile_limit | default('10240') }}

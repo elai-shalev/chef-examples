@@ -1,0 +1,19 @@
+---
+- name: Create limits.d directory if it doesn't exist
+  ansible.builtin.file:
+    path: /etc/security/limits.d
+    state: directory
+    mode: "0755"
+- name: Set Redis ulimit configuration
+  ansible.builtin.template:
+    src: redis-limits.conf.j2
+    dest: /etc/security/limits.d/redis.conf
+    owner: root
+    group: root
+    mode: "0644"
+- name: Configure PAM to use limits.d (Debian/Ubuntu)
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-session
+    line: session required pam_limits.so
+    state: present
+  when: ansible_os_family == "Debian"

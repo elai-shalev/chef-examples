@@ -1,0 +1,23 @@
+---
+- name: Check if default Redis service exists
+  ansible.builtin.stat:
+    path: /etc/init.d/redis-server
+  register: redis_default_service
+  when: ansible_os_family == "Debian"
+- name: Disable default Redis service (Debian/Ubuntu)
+  ansible.builtin.service:
+    name: redis-server
+    state: stopped
+    enabled: false
+  when: ansible_os_family == "Debian" and redis_default_service.stat.exists
+- name: Check if default Redis service exists (RedHat)
+  ansible.builtin.stat:
+    path: /etc/init.d/redis
+  register: redis_default_service_redhat
+  when: ansible_os_family == "RedHat"
+- name: Disable default Redis service (RedHat/CentOS)
+  ansible.builtin.service:
+    name: redis
+    state: stopped
+    enabled: false
+  when: ansible_os_family == "RedHat" and redis_default_service_redhat.stat.exists

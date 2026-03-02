@@ -1,0 +1,34 @@
+---
+- name: Create Redis configuration directories
+  ansible.builtin.file:
+    path: /etc/redis
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+- name: Configure Redis instances
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/{{ item.port }}.conf
+    owner: redis
+    group: redis
+    mode: "0644"
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+  notify: restart redis
+- name: Create Redis systemd service files
+  ansible.builtin.template:
+    src: redis.service.j2
+    dest: /etc/systemd/system/redis{{ item.port }}.service
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+  notify:
+    - reload systemd
+    - restart redis
+- name: Ensure Redis services are enabled and started
+  ansible.builtin.systemd:
+    name: redis{{ item.port }}
+    enabled: true
+    state: started
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
