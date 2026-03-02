@@ -1,0 +1,34 @@
+---
+- name: Ensure Redis user exists
+  ansible.builtin.user:
+    name: redis
+    system: true
+    shell: /bin/false
+    home: /var/lib/redis
+    createhome: false
+- name: Configure PAM limits for Redis user
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: redis soft nofile {{ redis_nofile_limit | default('65536') }}
+    regexp: ^redis soft nofile
+    state: present
+- name: Configure PAM hard limits for Redis user
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: redis hard nofile {{ redis_nofile_limit | default('65536') }}
+    regexp: ^redis hard nofile
+    state: present
+- name: Configure PAM in /etc/pam.d/su
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/su
+    line: session    required   pam_limits.so
+    regexp: ^session\s+required\s+pam_limits.so
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Configure PAM in /etc/pam.d/sudo
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/sudo
+    line: session    required   pam_limits.so
+    regexp: ^session\s+required\s+pam_limits.so
+    state: present
+  when: ansible_os_family == "Debian"

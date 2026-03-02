@@ -1,0 +1,31 @@
+---
+- name: Include memcached installation tasks
+  ansible.builtin.include_tasks: memcached_install.yml
+  tags:
+    - memcached
+    - install
+- name: Include memcached configuration tasks
+  ansible.builtin.include_tasks: memcached_configure.yml
+  tags:
+    - memcached
+    - configure
+- name: Include memcached service tasks
+  ansible.builtin.include_tasks: memcached_service.yml
+  tags:
+    - memcached
+    - service
+- name: Include redis installation tasks
+  ansible.builtin.include_tasks: redis_install.yml
+  tags:
+    - redis
+    - install
+- name: Include redis configuration tasks
+  ansible.builtin.include_tasks: redis_configure.yml
+  tags:
+    - redis
+    - configure
+- name: Include redis service enablement tasks
+  ansible.builtin.include_tasks: redis_enable.yml
+  tags:
+    - redis
+    - service

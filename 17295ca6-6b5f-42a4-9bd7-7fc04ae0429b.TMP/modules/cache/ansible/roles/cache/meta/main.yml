@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  author: Chef to Ansible Migration Team
+  description: Role for managing cache services (Memcached and Redis)
+  company: Your Company Name
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+  galaxy_tags:
+    - cache
+    - memcached
+    - redis
+    - database
+dependencies: []

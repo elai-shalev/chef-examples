@@ -1,0 +1,17 @@
+---
+- name: Stop and disable default Redis service
+  ansible.builtin.service:
+    name: redis-server
+    state: stopped
+    enabled: false
+  register: redis_debian_stop
+  failed_when: false
+  when: ansible_os_family == "Debian"
+- name: Stop and disable default Redis service (RHEL/CentOS)
+  ansible.builtin.service:
+    name: redis
+    state: stopped
+    enabled: false
+  register: redis_redhat_stop
+  failed_when: false
+  when: ansible_os_family == "RedHat"
