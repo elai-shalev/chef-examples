@@ -1,0 +1,35 @@
+---
+- name: Create Redis configuration file
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/{{ redis_port | default('6379') }}.conf
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0644"
+  notify: restart redis
+- name: Determine init system
+  ansible.builtin.command: ps -p 1 -o comm=
+  register: init_system
+  changed_when: false
+  check_mode: false
+- name: Set init system fact
+  ansible.builtin.set_fact:
+    redis_init_system: "{{ 'systemd' if 'systemd' in init_system.stdout else 'initd' }}"
+- name: Configure Redis systemd service
+  ansible.builtin.template:
+    src: redis@.service.j2
+    dest: /etc/systemd/system/redis@.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: redis_init_system == 'systemd'
+  notify: reload systemd
+- name: Configure Redis init.d service
+  ansible.builtin.template:
+    src: redis.init.j2
+    dest: /etc/init.d/redis{{ redis_port | default('6379') }}
+    owner: root
+    group: root
+    mode: "0755"
+  when: redis_init_system == 'initd'
+  notify: restart redis

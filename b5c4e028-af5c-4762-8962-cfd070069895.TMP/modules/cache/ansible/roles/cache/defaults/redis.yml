@@ -1,0 +1,12 @@
+---
+redis_user: redis
+redis_group: redis
+redis_port: 6379
+redis_password: redis_secure_password_123
+redis_maxmemory: 0
+redis_maxmemory_policy: noeviction
+redis_maxclients: 10000
+redis_appendonly: "no"
+redis_appendfsync: everysec
+redis_nofile_limit: 65536
+redis_supervised: systemd

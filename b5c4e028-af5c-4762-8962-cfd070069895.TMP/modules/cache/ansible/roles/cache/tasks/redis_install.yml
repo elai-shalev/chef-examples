@@ -1,0 +1,49 @@
+---
+- name: Install Redis prerequisites
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - tcl
+    state: present
+- name: Install Redis server package
+  ansible.builtin.package:
+    name: redis-server
+    state: present
+- name: Ensure Redis user exists
+  ansible.builtin.user:
+    name: "{{ redis_user | default('redis') }}"
+    system: true
+    shell: /bin/false
+    home: /var/lib/redis
+    createhome: false
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  loop:
+    - /etc/redis
+    - /var/lib/redis
+    - /var/lib/redis/{{ redis_port | default('6379') }}
+    - /var/run/redis
+- name: Configure ulimit for Redis
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: "{{ redis_user | default('redis') }} soft nofile {{ redis_nofile_limit | default('65536') }}"
+    state: present
+- name: Configure ulimit for Redis (hard limit)
+  ansible.builtin.lineinfile:
+    path: /etc/security/limits.conf
+    line: "{{ redis_user | default('redis') }} hard nofile {{ redis_nofile_limit | default('65536') }}"
+    state: present
+- name: Stop default Redis service
+  ansible.builtin.service:
+    name: redis-server
+    state: stopped
+    enabled: false
+  register: redis_service_result
+  failed_when:
+    - redis_service_result is failed
+    - "'Could not find the requested service' not in redis_service_result.msg"
