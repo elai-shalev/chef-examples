@@ -1,0 +1,26 @@
+description "Redis Server {{ port | default('6379') }}"
+
+start on runlevel [23]
+stop on shutdown
+
+setuid redis
+setgid redis
+
+respawn
+respawn limit 10 5
+
+# The path to the Redis binary
+env DAEMON=/usr/bin/redis-server
+env DAEMON_ARGS=/etc/redis/{{ port | default('6379') }}.conf
+env PIDFILE=/var/run/redis/{{ port | default('6379') }}/redis_{{ port | default('6379') }}.pid
+
+pre-start script
+    mkdir -p /var/run/redis/{{ port | default('6379') }}
+    chown redis:redis /var/run/redis/{{ port | default('6379') }}
+end script
+
+exec $DAEMON $DAEMON_ARGS
+
+post-stop script
+    rm -f $PIDFILE
+end script

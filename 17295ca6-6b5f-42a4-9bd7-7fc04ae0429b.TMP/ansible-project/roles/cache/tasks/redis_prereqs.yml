@@ -1,0 +1,15 @@
+---
+- name: Install Redis build dependencies
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - build-essential
+    - tcl
+    - git
+  when: redis_install_from_source | default(false)
+- name: Install development tools
+  ansible.builtin.package:
+    name: build-essential
+    state: present
+  when: redis_install_from_source | default(false)

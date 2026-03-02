@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# Simple Redis init.d script for Debian/Ubuntu/CentOS
+# Provides: redis_{{ port | default('6379') }}
+# Required-Start: $network $local_fs $remote_fs
+# Required-Stop: $network $local_fs $remote_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Redis data structure server
+# Description: Redis is an open source, advanced key-value store
+#
+
+### BEGIN INIT INFO
+# Provides: redis_{{ port | default('6379') }}
+# Required-Start: $network $local_fs $remote_fs
+# Required-Stop: $network $local_fs $remote_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Redis data structure server
+# Description: Redis is an open source, advanced key-value store
+### END INIT INFO
+
+REDISPORT={{ port | default('6379') }}
+EXEC=/usr/bin/redis-server
+CLIEXEC=/usr/bin/redis-cli
+
+PIDFILE=/var/run/redis/{{ port | default('6379') }}/redis_{{ port | default('6379') }}.pid
+CONF="/etc/redis/${REDISPORT}.conf"
+USER=redis
+GROUP=redis
+
+case "$1" in
+    start)
+        if [ -f $PIDFILE ]
+        then
+            echo "$PIDFILE exists, process is already running or crashed"
+        else
+            echo "Starting Redis server..."
+            mkdir -p /var/run/redis/{{ port | default('6379') }}
+            chown ${USER}:${GROUP} /var/run/redis/{{ port | default('6379') }}
+            su ${USER} -c "$EXEC $CONF"
+        fi
+        ;;
+    stop)
+        if [ ! -f $PIDFILE ]
+        then
+            echo "$PIDFILE does not exist, process is not running"
+        else
+            PID=$(cat $PIDFILE)
+            echo "Stopping Redis server..."
+            {% if requirepass is defined and requirepass %}
+            $CLIEXEC -p $REDISPORT -a {{ requirepass }} shutdown
+            {% else %}
+            $CLIEXEC -p $REDISPORT shutdown
+            {% endif %}
+            while [ -x /proc/${PID} ]
+            do
+                echo "Waiting for Redis to shutdown ..."
+                sleep 1
+            done
+            echo "Redis stopped"
+        fi
+        ;;
+    status)
+        if [ ! -f $PIDFILE ]
+        then
+            echo "Redis is not running"
+            exit 1
+        fi
+        PID=$(cat $PIDFILE)
+        if [ ! -x /proc/${PID} ]
+        then
+            echo "Redis is not running"
+            exit 1
+        fi
+        echo "Redis is running ($PID)"
+        exit 0
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Please use start, stop, restart or status as first argument"
+        ;;
+esac
