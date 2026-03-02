@@ -1,0 +1,3 @@
+---
+# Main defaults file for cache role
+# Include variables from memcached.yml and redis.yml

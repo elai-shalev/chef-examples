@@ -1,0 +1,12 @@
+---
+- name: Restart memcached
+  ansible.builtin.service:
+    name: memcached
+    state: restarted
+- name: Restart redis
+  ansible.builtin.service:
+    name: "{{ 'redis@' + redis_port | default('6379') if redis_init_system == 'systemd' else 'redis' + redis_port | default('6379') }}"
+    state: restarted
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
