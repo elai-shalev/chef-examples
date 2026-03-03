@@ -1,0 +1,28 @@
+---
+enable_redis: true
+enable_memcached: true
+redis_package_name: "{{ 'redis-server' if ansible_os_family == 'Debian' else 'redis' }}"
+redis_install_dir: /usr/bin
+redis_user: redis
+redis_group: redis
+redis_conf_dir: /etc/redis
+redis_dir: /var/lib/redis
+redis_piddir: /var/run/redis
+redis_logdir: /var/log/redis
+redis_port: 6379
+redis_bind: 127.0.0.1
+redis_requirepass: redis_secure_password_123
+redis_servers:
+  - port: "6379"
+    requirepass: redis_secure_password_123
+memcached_package_name: memcached
+memcached_user: memcache
+memcached_group: memcache
+memcached_port: 11211
+memcached_listen: 0.0.0.0
+memcached_memory: 64
+memcached_maxconn: 1024
+memcached_logfile: /var/log/memcached.log
+memcached_service_name: memcached
+memcached_service_enabled: true
+memcached_config_file: "{{ '/etc/memcached.conf' if ansible_os_family == 'Debian' else '/etc/sysconfig/memcached' }}"

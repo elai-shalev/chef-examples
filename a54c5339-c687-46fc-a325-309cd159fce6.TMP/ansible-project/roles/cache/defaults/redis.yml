@@ -1,0 +1,46 @@
+---
+redis_package_name: "{{ 'redis-server' if ansible_os_family == 'Debian' else 'redis' }}"
+redis_install_dir: /usr/bin
+redis_user: redis
+redis_group: redis
+redis_conf_dir: /etc/redis
+redis_dir: /var/lib/redis
+redis_piddir: /var/run/redis
+redis_logdir: /var/log/redis
+redis_port: 6379
+redis_bind: 127.0.0.1
+redis_protected_mode: "yes"
+redis_timeout: 0
+redis_tcp_keepalive: 300
+redis_daemonize: "yes"
+redis_supervised: "no"
+redis_loglevel: notice
+redis_databases: 16
+redis_save_900_1: 900 1
+redis_save_300_10: 300 10
+redis_save_60_10000: 60 10000
+redis_stop_writes_on_bgsave_error: "yes"
+redis_rdbcompression: "yes"
+redis_rdbchecksum: "yes"
+redis_dbfilename: dump.rdb
+redis_appendonly: "no"
+redis_appendfilename: appendonly.aof
+redis_appendfsync: everysec
+redis_no_appendfsync_on_rewrite: "no"
+redis_auto_aof_rewrite_percentage: 100
+redis_auto_aof_rewrite_min_size: 64mb
+redis_aof_load_truncated: "yes"
+redis_aof_use_rdb_preamble: "yes"
+redis_lua_time_limit: 5000
+redis_slowlog_log_slower_than: 10000
+redis_slowlog_max_len: 128
+redis_latency_monitor_threshold: 0
+redis_notify_keyspace_events: '""'
+redis_maxmemory: 0
+redis_maxmemory_policy: noeviction
+redis_maxmemory_samples: 5
+redis_nofile_limit: 65536
+redis_requirepass: redis_secure_password_123
+redis_servers:
+  - port: "6379"
+    requirepass: redis_secure_password_123

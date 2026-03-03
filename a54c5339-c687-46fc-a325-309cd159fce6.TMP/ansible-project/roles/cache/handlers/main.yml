@@ -1,0 +1,20 @@
+---
+- name: restart redis
+  ansible.builtin.service:
+    name: redis@{{ item.port | default('6379') }}
+    state: restarted
+  loop: "{{ redis_servers | default([{'port': '6379', 'requirepass': 'redis_secure_password_123'}]) }}"
+  when: ansible_service_mgr == "systemd"
+- name: restart redis init
+  ansible.builtin.service:
+    name: redis{{ item.port | default('6379') }}
+    state: restarted
+  loop: "{{ redis_servers | default([{'port': '6379', 'requirepass': 'redis_secure_password_123'}]) }}"
+  when: ansible_service_mgr != "systemd"
+- name: restart memcached
+  ansible.builtin.service:
+    name: "{{ memcached_service_name }}"
+    state: restarted
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true

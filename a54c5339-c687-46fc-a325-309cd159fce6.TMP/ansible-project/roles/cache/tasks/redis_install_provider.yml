@@ -1,0 +1,36 @@
+---
+- name: Install Redis package on Debian/Ubuntu
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Install Redis package on RedHat/CentOS
+  ansible.builtin.yum:
+    name: redis
+    state: present
+  when: ansible_os_family == "RedHat"
+- name: Create Redis user
+  ansible.builtin.user:
+    name: "{{ redis_user | default('redis') }}"
+    system: true
+    group: "{{ redis_group | default('redis') }}"
+    shell: /bin/false
+    home: "{{ redis_dir | default('/var/lib/redis') }}"
+    create_home: false
+- name: Create Redis group
+  ansible.builtin.group:
+    name: "{{ redis_group | default('redis') }}"
+    system: true
+    state: present
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  loop:
+    - "{{ redis_conf_dir | default('/etc/redis') }}"
+    - "{{ redis_dir | default('/var/lib/redis') }}"
+    - "{{ redis_piddir | default('/var/run/redis') }}"
+    - "{{ redis_logdir | default('/var/log/redis') }}"

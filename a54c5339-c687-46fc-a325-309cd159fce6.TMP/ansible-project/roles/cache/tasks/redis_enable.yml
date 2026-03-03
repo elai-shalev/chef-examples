@@ -1,0 +1,19 @@
+---
+- name: Check if systemd is available
+  ansible.builtin.stat:
+    path: /bin/systemctl
+  register: systemctl_check
+- name: Enable and start Redis systemd service
+  ansible.builtin.systemd:
+    name: redis@{{ item.port | default('6379') }}
+    state: started
+    enabled: true
+  loop: "{{ redis_servers | default([{'port': '6379', 'requirepass': 'redis_secure_password_123'}]) }}"
+  when: systemctl_check.stat.exists
+- name: Enable and start Redis init service
+  ansible.builtin.service:
+    name: redis{{ item.port | default('6379') }}
+    state: started
+    enabled: true
+  loop: "{{ redis_servers | default([{'port': '6379', 'requirepass': 'redis_secure_password_123'}]) }}"
+  when: not systemctl_check.stat.exists
