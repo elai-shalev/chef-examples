@@ -1,0 +1,24 @@
+---
+- name: Configure memcached on Debian/Ubuntu
+  ansible.builtin.template:
+    src: memcached.conf.j2
+    dest: "{{ memcached_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_os_family == "Debian"
+  notify: restart memcached
+- name: Configure memcached on RedHat/CentOS
+  ansible.builtin.template:
+    src: memcached.sysconfig.j2
+    dest: "{{ memcached_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_os_family == "RedHat"
+  notify: restart memcached
+- name: Enable and start memcached service
+  ansible.builtin.service:
+    name: "{{ memcached_service_name }}"
+    state: started
+    enabled: "{{ memcached_service_enabled }}"

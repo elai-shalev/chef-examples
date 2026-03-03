@@ -1,0 +1,22 @@
+---
+- name: Create Redis configuration directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  loop:
+    - "{{ redis_conf_dir | default('/etc/redis') }}"
+    - "{{ redis_dir | default('/var/lib/redis') }}"
+    - "{{ redis_piddir | default('/var/run/redis') }}"
+    - "{{ redis_logdir | default('/var/log/redis') }}"
+- name: Create Redis configuration file
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: "{{ redis_conf_dir | default('/etc/redis') }}/{{ item.port | default('6379') }}.conf"
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0644"
+  loop: "{{ redis_servers | default([{'port': '6379', 'requirepass': 'redis_secure_password_123'}]) }}"
+  notify: restart redis

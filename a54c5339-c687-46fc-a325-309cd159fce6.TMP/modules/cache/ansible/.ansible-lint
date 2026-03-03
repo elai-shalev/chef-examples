@@ -1,0 +1,2 @@
+skip_list:
+  - 'R301'  # Use FQCN for builtin modules

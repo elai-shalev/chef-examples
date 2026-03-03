@@ -1,0 +1,29 @@
+---
+- name: Install memcached package
+  ansible.builtin.package:
+    name: "{{ memcached_package_name }}"
+    state: present
+- name: Ensure memcached user exists
+  ansible.builtin.user:
+    name: "{{ memcached_user }}"
+    system: true
+    group: "{{ memcached_group }}"
+    shell: /bin/false
+    create_home: false
+  when: memcached_user != "root"
+- name: Ensure memcached group exists
+  ansible.builtin.group:
+    name: "{{ memcached_group }}"
+    system: true
+    state: present
+  when: memcached_group != "root"
+- name: Create memcached log file
+  ansible.builtin.file:
+    path: "{{ memcached_logfile }}"
+    state: touch
+    owner: "{{ memcached_user }}"
+    group: "{{ memcached_group }}"
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+  when: memcached_logfile != ""

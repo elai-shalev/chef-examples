@@ -1,0 +1,16 @@
+---
+- name: Install Redis
+  import_tasks: redis_install.yml
+  when: enable_redis | bool
+- name: Configure Redis
+  import_tasks: redis_configure.yml
+  when: enable_redis | bool
+- name: Enable Redis service
+  import_tasks: redis_enable.yml
+  when: enable_redis | bool
+- name: Install Memcached
+  import_tasks: memcached_install.yml
+  when: enable_memcached | bool
+- name: Configure Memcached
+  import_tasks: memcached_configure.yml
+  when: enable_memcached | bool
