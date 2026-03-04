@@ -1,0 +1,6 @@
+- name: Redis configure provider tasks (reference only)
+  ansible.builtin.debug:
+    msg: Redis configure provider tasks are handled in redis_configure.yml
+  tags:
+  - redis
+  - cache

@@ -1,0 +1,35 @@
+- name: Install Redis from package for Debian
+  ansible.builtin.apt:
+    name: '{{ redis_package_name }}'
+    state: present
+  when:
+  - ansible_os_family == 'Debian'
+  - redis_install_type == 'package'
+  tags:
+  - redis
+  - cache
+- name: Install Redis from package for RedHat
+  ansible.builtin.dnf:
+    name: redis
+    state: present
+  when:
+  - ansible_os_family == 'RedHat'
+  - redis_install_type == 'package'
+  tags:
+  - redis
+  - cache
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    owner: '{{ redis_user }}'
+    group: '{{ redis_group }}'
+    mode: '0755'
+  loop:
+  - '{{ redis_conf_dir }}'
+  - '{{ redis_log_dir }}'
+  - '{{ redis_data_dir }}'
+  - '{{ redis_pid_dir }}'
+  tags:
+  - redis
+  - cache

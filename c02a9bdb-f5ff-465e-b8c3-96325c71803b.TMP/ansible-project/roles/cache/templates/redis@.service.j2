@@ -1,0 +1,18 @@
+[Unit]
+Description=Redis instance %i
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/redis-server {{ redis_conf_dir }}/%i.conf
+ExecStop=/usr/bin/redis-cli -p %i shutdown
+Restart=always
+User={{ redis_user }}
+Group={{ redis_group }}
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

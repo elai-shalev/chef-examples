@@ -1,0 +1,80 @@
+# Redis configuration file
+
+# General
+daemonize {{ item.daemonize | default('yes') }}
+pidfile {{ redis_pid_dir }}/redis_{{ item.port }}.pid
+port {{ item.port }}
+{% if item.bind is defined and item.bind %}
+bind {{ item.bind }}
+{% endif %}
+timeout {{ item.timeout | default(0) }}
+loglevel {{ item.loglevel | default('notice') }}
+logfile {{ item.logfile | default('/var/log/redis/redis_' + item.port|string + '.log') }}
+databases {{ item.databases | default(16) }}
+
+# Snapshotting
+{% if item.save is defined and item.save %}
+{% for save_option in item.save %}
+save {{ save_option }}
+{% endfor %}
+{% else %}
+save 900 1
+save 300 10
+save 60 10000
+{% endif %}
+rdbcompression {{ item.rdbcompression | default('yes') }}
+dbfilename {{ item.dbfilename | default('dump.rdb') }}
+dir {{ item.dir | default('/var/lib/redis') }}
+
+# Replication
+{% if item.slaveof is defined and item.slaveof %}
+slaveof {{ item.slaveof.masterip }} {{ item.slaveof.masterport }}
+{% endif %}
+
+{% if item.requirepass is defined and item.requirepass %}
+requirepass {{ item.requirepass }}
+{% endif %}
+
+{% if item.masterauth is defined and item.masterauth %}
+masterauth {{ item.masterauth }}
+{% endif %}
+
+# Limits
+{% if item.maxclients is defined and item.maxclients %}
+maxclients {{ item.maxclients }}
+{% endif %}
+
+{% if item.maxmemory is defined and item.maxmemory %}
+maxmemory {{ item.maxmemory }}
+maxmemory-policy {{ item.maxmemory_policy | default('volatile-lru') }}
+maxmemory-samples {{ item.maxmemory_samples | default(3) }}
+{% endif %}
+
+# Append Only Mode
+appendonly {{ item.appendonly | default('no') }}
+appendfilename {{ item.appendfilename | default('appendonly.aof') }}
+appendfsync {{ item.appendfsync | default('everysec') }}
+no-appendfsync-on-rewrite {{ item.no_appendfsync_on_rewrite | default('no') }}
+auto-aof-rewrite-percentage {{ item.auto_aof_rewrite_percentage | default(100) }}
+auto-aof-rewrite-min-size {{ item.auto_aof_rewrite_min_size | default('64mb') }}
+
+# Slow log
+slowlog-log-slower-than {{ item.slowlog_log_slower_than | default(10000) }}
+slowlog-max-len {{ item.slowlog_max_len | default(1024) }}
+
+# Advanced config
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+list-max-ziplist-entries 512
+list-max-ziplist-value 64
+set-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+activerehashing {{ item.activerehashing | default('yes') }}
+
+# Include
+{% if item.include is defined and item.include %}
+{% for include_option in item.include %}
+include {{ include_option }}
+{% endfor %}
+{% endif %}
