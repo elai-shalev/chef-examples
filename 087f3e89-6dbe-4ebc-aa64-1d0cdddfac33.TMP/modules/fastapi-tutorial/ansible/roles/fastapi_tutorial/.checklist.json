@@ -1,0 +1,85 @@
+{
+  "module_name": "fastapi_tutorial",
+  "items": [
+    {
+      "category": "structure",
+      "source_path": "cookbooks/fastapi-tutorial/metadata.rb",
+      "target_path": "./ansible/roles/fastapi_tutorial/meta/main.yml",
+      "status": "complete",
+      "description": "Role metadata from Chef cookbook",
+      "notes": "Created meta/main.yml with role metadata converted from Chef metadata.rb"
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/fastapi_tutorial/handlers/main.yml",
+      "status": "complete",
+      "description": "Main handlers file",
+      "notes": "Created handlers/main.yml with systemd reload handler"
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/fastapi_tutorial/defaults/main.yml",
+      "status": "complete",
+      "description": "Default variables file",
+      "notes": "Created defaults/main.yml with role variables extracted from Chef recipe"
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/fastapi-tutorial/recipes/default.rb",
+      "target_path": "./ansible/roles/fastapi_tutorial/tasks/main.yml",
+      "status": "complete",
+      "description": "Main recipe tasks for FastAPI application setup",
+      "notes": "Converted Chef recipe to Ansible tasks with proper FQCN module names and variables"
+    },
+    {
+      "category": "templates",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/fastapi_tutorial/templates/env.j2",
+      "status": "complete",
+      "description": "Environment configuration file template",
+      "notes": "Created Jinja2 template for environment configuration file with variables"
+    },
+    {
+      "category": "templates",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/fastapi_tutorial/templates/fastapi-tutorial.service.j2",
+      "status": "complete",
+      "description": "Systemd service file template",
+      "notes": "Created Jinja2 template for systemd service file with variables"
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:community.postgresql",
+      "target_path": "./ansible/roles/fastapi_tutorial/requirements.yml",
+      "status": "complete",
+      "description": "PostgreSQL collection for database management",
+      "notes": "Created requirements.yml with required collections"
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:ansible.posix",
+      "target_path": "./ansible/roles/fastapi_tutorial/requirements.yml",
+      "status": "complete",
+      "description": "General collection for service management",
+      "notes": "Added ansible.posix collection to requirements.yml"
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:community.general",
+      "target_path": "./ansible/roles/fastapi_tutorial/requirements.yml",
+      "status": "complete",
+      "description": "Collection for systemd service management",
+      "notes": "Added community.general collection to requirements.yml"
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "ansible/roles/fastapi_tutorial/meta/main.yml",
+      "status": "complete",
+      "description": "Created standard meta/main.yml",
+      "notes": ""
+    }
+  ]
+}
