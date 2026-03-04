@@ -1,0 +1,12 @@
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  tags:
+  - redis
+  - cache
+- name: Include Redis prerequisites
+  ansible.builtin.import_tasks: redis_prereqs.yml
+  tags:
+  - redis
+  - cache

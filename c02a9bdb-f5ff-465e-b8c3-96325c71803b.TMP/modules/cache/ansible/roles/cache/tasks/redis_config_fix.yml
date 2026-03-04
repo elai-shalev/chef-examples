@@ -1,0 +1,24 @@
+- name: Set lines to remove
+  ansible.builtin.set_fact:
+    lines_to_remove:
+    - ^replica-serve-stale-data.*$
+    - ^replica-read-only.*$
+    - ^repl-ping-replica-period.*$
+    - ^client-output-buffer-limit.*$
+    - ^replica-priority.*$
+  tags:
+  - redis
+  - cache
+- name: Fix Redis configuration for each instance and line
+  ansible.builtin.lineinfile:
+    path: /etc/redis/{{ item.0.port }}.conf
+    regexp: '{{ item.1 }}'
+    state: absent
+  loop: '{{ redis_instances | product(lines_to_remove) | list }}'
+  loop_control:
+    loop_var: item
+  when: not ansible_check_mode
+  register: redis_config_fix
+  tags:
+  - redis
+  - cache

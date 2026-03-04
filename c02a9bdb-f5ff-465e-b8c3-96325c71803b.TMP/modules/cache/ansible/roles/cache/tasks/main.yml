@@ -1,0 +1,60 @@
+---
+- name: Include memcached tasks
+  ansible.builtin.import_tasks: memcached.yml
+  tags:
+    - memcached
+    - cache
+
+- name: Create Redis log directory
+  ansible.builtin.file:
+    path: "{{ redis_log_dir }}"
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0755"
+    state: directory
+    recurse: true
+  tags:
+    - redis
+    - cache
+
+- name: Include Redis installation tasks
+  ansible.builtin.import_tasks: redis_prereqs.yml
+  tags:
+    - redis
+    - cache
+
+- name: Include Redis installation tasks
+  ansible.builtin.import_tasks: redis_install.yml
+  tags:
+    - redis
+    - cache
+
+- name: Include Redis ulimit configuration
+  ansible.builtin.import_tasks: redis_ulimit.yml
+  tags:
+    - redis
+    - cache
+
+- name: Include Redis OS default service disabling
+  ansible.builtin.import_tasks: redis_disable_os_default.yml
+  tags:
+    - redis
+    - cache
+
+- name: Include Redis configuration tasks
+  ansible.builtin.import_tasks: redis_configure.yml
+  tags:
+    - redis
+    - cache
+
+- name: Include Redis configuration fix tasks
+  ansible.builtin.import_tasks: redis_config_fix.yml
+  tags:
+    - redis
+    - cache
+
+- name: Include Redis enable tasks
+  ansible.builtin.import_tasks: redis_enable.yml
+  tags:
+    - redis
+    - cache

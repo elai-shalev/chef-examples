@@ -1,0 +1,20 @@
+- name: Disable default OS Redis service if present
+  ansible.builtin.service:
+    name: redis-server
+    state: stopped
+    enabled: false
+  when: ansible_os_family == 'Debian'
+  failed_when: false
+  tags:
+  - redis
+  - cache
+- name: Disable default OS Redis service if present (RedHat)
+  ansible.builtin.service:
+    name: redis
+    state: stopped
+    enabled: false
+  when: ansible_os_family == 'RedHat'
+  failed_when: false
+  tags:
+  - redis
+  - cache
