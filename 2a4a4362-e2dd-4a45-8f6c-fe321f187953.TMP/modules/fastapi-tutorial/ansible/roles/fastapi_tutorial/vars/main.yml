@@ -1,0 +1,12 @@
+---
+app_dir: /opt/fastapi-tutorial
+app_host: 0.0.0.0
+app_port: 8000
+repo_url: https://github.com/dibanez/fastapi_tutorial.git
+repo_branch: main
+db_host: localhost
+db_user: fastapi
+db_password: fastapi_password
+db_name: fastapi_db
+project_name: FastAPI Tutorial
+api_version: 1.0.0
