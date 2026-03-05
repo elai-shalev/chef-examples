@@ -1,0 +1,23 @@
+---
+- name: Check if default Redis service exists
+  ansible.builtin.stat:
+    path: /lib/systemd/system/redis-server.service
+  register: redis_default_service
+  when: ansible_service_mgr == "systemd"
+- name: Disable default Redis service (systemd)
+  ansible.builtin.systemd:
+    name: redis-server
+    state: stopped
+    enabled: false
+  when: ansible_service_mgr == "systemd" and redis_default_service.stat.exists
+- name: Check if default Redis service exists (init)
+  ansible.builtin.stat:
+    path: /etc/init.d/redis-server
+  register: redis_default_init
+  when: ansible_service_mgr == "sysvinit"
+- name: Disable default Redis service (init)
+  ansible.builtin.service:
+    name: redis-server
+    state: stopped
+    enabled: false
+  when: ansible_service_mgr == "sysvinit" and redis_default_init.stat.exists

@@ -1,0 +1,31 @@
+---
+- name: Create Redis configuration directory
+  ansible.builtin.file:
+    path: /etc/redis
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+- name: Create Redis configuration file
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/{{ item.port }}.conf
+    owner: redis
+    group: redis
+    mode: "0644"
+  loop: "{{ redis_servers }}"
+  notify: restart redis
+- name: Create Redis log directory
+  ansible.builtin.file:
+    path: /var/log/redis
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+- name: Create Redis data directory
+  ansible.builtin.file:
+    path: /var/lib/redis
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"

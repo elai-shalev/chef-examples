@@ -1,0 +1,33 @@
+---
+- name: Include memcached tasks
+  ansible.builtin.import_tasks: memcached.yml
+- name: Set Redis server configuration
+  ansible.builtin.set_fact:
+    redis_servers:
+      - port: "6379"
+        requirepass: redis_secure_password_123
+        replicaservestaledata:
+- name: Create Redis log directory
+  ansible.builtin.file:
+    path: /var/log/redis
+    owner: redis
+    group: redis
+    mode: "0755"
+    state: directory
+    recurse: true
+- name: Include Redis tasks
+  ansible.builtin.import_tasks: redis.yml
+- name: Fix Redis configuration
+  ansible.builtin.lineinfile:
+    path: /etc/redis/6379.conf
+    regexp: "{{ item }}"
+    state: absent
+  loop:
+    - ^replica-serve-stale-data.*$
+    - ^replica-read-only.*$
+    - ^repl-ping-replica-period.*$
+    - ^client-output-buffer-limit.*$
+    - ^replica-priority.*$
+  register: redis_config_fix
+- name: Include Redis enable tasks
+  ansible.builtin.import_tasks: redis_enable.yml

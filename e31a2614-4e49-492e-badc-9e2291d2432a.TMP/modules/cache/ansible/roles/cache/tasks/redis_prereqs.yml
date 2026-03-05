@@ -1,0 +1,16 @@
+---
+- name: Install Redis prerequisites on Debian/Ubuntu
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - tcl
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Install Redis prerequisites on RedHat/CentOS
+  ansible.builtin.dnf:
+    name:
+      - gcc
+      - make
+      - tcl
+    state: present
+  when: ansible_os_family == "RedHat"

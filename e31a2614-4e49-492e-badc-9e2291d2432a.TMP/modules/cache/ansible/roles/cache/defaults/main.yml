@@ -1,0 +1,7 @@
+---
+cache_components:
+  - memcached
+  - redis
+include_vars:
+  - memcached.yml
+  - redis.yml

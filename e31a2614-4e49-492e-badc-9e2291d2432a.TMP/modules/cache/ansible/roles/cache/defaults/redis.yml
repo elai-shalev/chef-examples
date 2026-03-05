@@ -1,0 +1,12 @@
+---
+redis_servers:
+  - port: "6379"
+    requirepass: redis_secure_password_123
+    replicaservestaledata:
+redis_install_type: package
+redis_user: redis
+redis_group: redis
+redis_config_dir: /etc/redis
+redis_data_dir: /var/lib/redis
+redis_log_dir: /var/log/redis
+redis_run_dir: /var/run/redis
