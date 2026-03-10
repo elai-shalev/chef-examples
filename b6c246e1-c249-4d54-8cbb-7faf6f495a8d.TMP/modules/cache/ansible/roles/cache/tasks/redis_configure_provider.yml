@@ -1,0 +1,36 @@
+---
+- name: Create Redis user
+  ansible.builtin.user:
+    name: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    system: true
+    shell: /bin/false
+    home: "{{ redis_home | default('/var/lib/redis') }}"
+    createhome: true
+  tags:
+    - redis
+    - cache
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+  loop:
+    - "{{ redis_conf_path | default('/etc/redis') }}"
+    - "{{ redis_pid_path | default('/var/run/redis') }}"
+    - "{{ redis_log_dir | default('/var/log/redis') }}"
+  tags:
+    - redis
+    - cache
+- name: Create Redis logrotate configuration
+  ansible.builtin.template:
+    src: redis-logrotate.conf.j2
+    dest: /etc/logrotate.d/redis
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - redis
+    - cache

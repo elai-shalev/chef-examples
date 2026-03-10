@@ -1,0 +1,62 @@
+#!/bin/sh
+#
+# Redis init script for FreeBSD/OpenBSD/NetBSD
+#
+# PROVIDE: redis{{ port | default('6379') }}
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="redis{{ port | default('6379') }}"
+rcvar="redis{{ port | default('6379') }}_enable"
+
+load_rc_config $name
+
+: ${redis{{ port | default('6379') }}_enable="NO"}
+: ${redis{{ port | default('6379') }}_user="redis"}
+: ${redis{{ port | default('6379') }}_group="redis"}
+: ${redis{{ port | default('6379') }}_config="/etc/redis/{{ port | default('6379') }}.conf"}
+: ${redis{{ port | default('6379') }}_pidfile="/var/run/redis/{{ port | default('6379') }}.pid"}
+: ${redis{{ port | default('6379') }}_logfile="/var/log/redis/redis_{{ port | default('6379') }}.log"}
+
+command="/usr/bin/redis-server"
+command_args="${redis{{ port | default('6379') }}_config}"
+pidfile="${redis{{ port | default('6379') }}_pidfile}"
+
+start_precmd="redis{{ port | default('6379') }}_precmd"
+start_cmd="redis{{ port | default('6379') }}_start"
+stop_cmd="redis{{ port | default('6379') }}_stop"
+status_cmd="redis{{ port | default('6379') }}_status"
+
+redis{{ port | default('6379') }}_precmd()
+{
+    touch ${redis{{ port | default('6379') }}_pidfile} ${redis{{ port | default('6379') }}_logfile}
+    chown ${redis{{ port | default('6379') }}_user}:${redis{{ port | default('6379') }}_group} ${redis{{ port | default('6379') }}_pidfile} ${redis{{ port | default('6379') }}_logfile}
+}
+
+redis{{ port | default('6379') }}_start()
+{
+    echo "Starting ${name}."
+    /usr/sbin/daemon -u ${redis{{ port | default('6379') }}_user} -p ${pidfile} ${command} ${command_args}
+}
+
+redis{{ port | default('6379') }}_stop()
+{
+    echo "Stopping ${name}."
+    if [ -f "${pidfile}" ]; then
+        kill `cat ${pidfile}`
+        rm -f ${pidfile}
+    fi
+}
+
+redis{{ port | default('6379') }}_status()
+{
+    if [ -f "${pidfile}" ]; then
+        echo "${name} is running as pid `cat ${pidfile}`."
+    else
+        echo "${name} is not running."
+    fi
+}
+
+run_rc_command "$1"

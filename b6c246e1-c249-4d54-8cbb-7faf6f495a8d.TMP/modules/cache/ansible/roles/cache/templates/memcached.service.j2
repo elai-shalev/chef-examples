@@ -1,0 +1,12 @@
+[Unit]
+Description=Memcached
+After=network.target
+
+[Service]
+Type=simple
+User={{ memcached_user | default('memcached') }}
+ExecStart=/usr/bin/memcached -m {{ memcached_memory | default('64') }} -p {{ memcached_port | default('11211') }} -u {{ memcached_user | default('memcached') }} -l {{ memcached_listen | default('0.0.0.0') }} -c {{ memcached_maxconn | default('1024') }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

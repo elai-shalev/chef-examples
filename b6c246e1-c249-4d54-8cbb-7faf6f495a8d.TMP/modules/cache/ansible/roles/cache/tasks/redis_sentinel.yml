@@ -1,0 +1,106 @@
+---
+- name: Create Redis sentinel configuration directories
+  ansible.builtin.file:
+    path: /etc/redis
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  tags:
+    - redis
+    - sentinel
+    - cache
+- name: Create Redis sentinel data directories
+  ansible.builtin.file:
+    path: /var/lib/redis/sentinel_{{ item.port | default('26379') }}
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  loop: "{{ redis_sentinels | default([{'port': '26379'}]) }}"
+  tags:
+    - redis
+    - sentinel
+    - cache
+- name: Create Redis sentinel configuration files
+  ansible.builtin.template:
+    src: sentinel.conf.j2
+    dest: /etc/redis/sentinel_{{ item.port | default('26379') }}.conf
+    owner: redis
+    group: redis
+    mode: "0644"
+  loop: "{{ redis_sentinels | default([{'port': '26379'}]) }}"
+  notify: Restart Redis Sentinel
+  tags:
+    - redis
+    - sentinel
+    - cache
+- name: Create Redis sentinel init scripts (SysV)
+  ansible.builtin.template:
+    src: sentinel.init.j2
+    dest: /etc/init.d/redis_sentinel_{{ item.port | default('26379') }}
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ redis_sentinels | default([{'port': '26379'}]) }}"
+  when: ansible_service_mgr != 'systemd'
+  notify: Restart Redis Sentinel
+  tags:
+    - redis
+    - sentinel
+    - cache
+- name: Create Redis sentinel systemd service files
+  ansible.builtin.template:
+    src: redis-sentinel@.service.j2
+    dest: /etc/systemd/system/redis-sentinel@.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_service_mgr == 'systemd'
+  notify: Restart Redis Sentinel
+  tags:
+    - redis
+    - sentinel
+    - cache
+- name: Create Redis sentinel systemd service instance files
+  ansible.builtin.file:
+    src: /etc/systemd/system/redis-sentinel@.service
+    dest: /etc/systemd/system/redis-sentinel@{{ item.port | default('26379') }}.service
+    state: link
+  loop: "{{ redis_sentinels | default([{'port': '26379'}]) }}"
+  when: ansible_service_mgr == 'systemd'
+  notify: Restart Redis Sentinel
+  tags:
+    - redis
+    - sentinel
+    - cache
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: ansible_service_mgr == 'systemd'
+  tags:
+    - redis
+    - sentinel
+    - cache
+- name: Enable and start Redis sentinel services (systemd)
+  ansible.builtin.systemd:
+    name: redis-sentinel@{{ item.port | default('26379') }}
+    state: started
+    enabled: true
+  loop: "{{ redis_sentinels | default([{'port': '26379'}]) }}"
+  when: ansible_service_mgr == 'systemd'
+  tags:
+    - redis
+    - sentinel
+    - cache
+- name: Enable and start Redis sentinel services (init)
+  ansible.builtin.service:
+    name: redis_sentinel_{{ item.port | default('26379') }}
+    state: started
+    enabled: true
+  loop: "{{ redis_sentinels | default([{'port': '26379'}]) }}"
+  when: ansible_service_mgr != 'systemd'
+  tags:
+    - redis
+    - sentinel
+    - cache

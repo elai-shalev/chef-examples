@@ -1,0 +1,19 @@
+description "Redis Server {{ port | default('6379') }}"
+
+start on runlevel [23]
+stop on shutdown
+
+setuid redis
+setgid redis
+
+respawn
+respawn limit 10 5
+
+script
+  exec /usr/bin/redis-server /etc/redis/{{ port | default('6379') }}.conf
+end script
+
+post-start script
+  # Give redis time to start up.
+  sleep 1
+end script

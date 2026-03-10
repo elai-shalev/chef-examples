@@ -1,0 +1,9 @@
+/var/log/redis/*.log {
+    daily
+    rotate 7
+    compress
+    missingok
+    notifempty
+    copytruncate
+    create 0640 {{ redis_user | default('redis') }} {{ redis_group | default('redis') }}
+}

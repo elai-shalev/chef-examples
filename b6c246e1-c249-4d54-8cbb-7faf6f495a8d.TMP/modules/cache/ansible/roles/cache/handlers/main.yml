@@ -1,0 +1,29 @@
+---
+- name: Restart memcached
+  ansible.builtin.service:
+    name: memcached
+    state: restarted
+- name: Restart Redis
+  ansible.builtin.service:
+    name: redis@{{ item.port | default('6379') }}
+    state: restarted
+  loop: '{{ redis_servers | default([{"port": "6379"}]) }}'
+  when: ansible_service_mgr == 'systemd'
+- name: Restart Redis (init)
+  ansible.builtin.service:
+    name: redis{{ item.port | default('6379') }}
+    state: restarted
+  loop: '{{ redis_servers | default([{"port": "6379"}]) }}'
+  when: ansible_service_mgr != 'systemd'
+- name: Restart Redis Sentinel
+  ansible.builtin.service:
+    name: redis-sentinel@{{ item.port | default('26379') }}
+    state: restarted
+  loop: '{{ redis_sentinels | default([{"port": "26379"}]) }}'
+  when: ansible_service_mgr == 'systemd'
+- name: Restart Redis Sentinel (init)
+  ansible.builtin.service:
+    name: redis_sentinel_{{ item.port | default('26379') }}
+    state: restarted
+  loop: '{{ redis_sentinels | default([{"port": "26379"}]) }}'
+  when: ansible_service_mgr != 'systemd'

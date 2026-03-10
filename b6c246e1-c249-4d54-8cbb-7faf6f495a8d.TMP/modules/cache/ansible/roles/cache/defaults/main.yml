@@ -1,0 +1,38 @@
+---
+memcached_memory: 64
+memcached_port: 11211
+memcached_user: "{{ 'memcache' if ansible_os_family == 'Debian' else 'memcached' }}"
+memcached_listen: 0.0.0.0
+memcached_maxconn: 1024
+redis_user: redis
+redis_group: redis
+redis_install_from_source: false
+redis_source_url: http://download.redis.io/releases/redis-6.2.6.tar.gz
+redis_source_sha256: 5b2b8b7a50111ef395bf1c1d5be11e6e167ac018125055daa8b5c2317ae131ab
+redis_source_dir: /tmp/redis-source
+redis_version: 6.2.6
+redis_home: /var/lib/redis
+redis_conf_path: /etc/redis
+redis_pid_path: /var/run/redis
+redis_log_dir: /var/log/redis
+redis_executable: /usr/local/bin/redis-server
+redis_sentinel_executable: /usr/local/bin/redis-sentinel
+redis_ulimit_nofile: 65536
+redis_servers:
+  - port: 6379
+    bind: 127.0.0.1
+    requirepass: redis_secure_password_123
+    maxmemory: "0"
+    maxmemory_policy: volatile-lru
+    maxmemory_samples: 3
+    save: 900 1 300 10 60 10000
+    loglevel: notice
+    rdbcompression: "yes"
+    hash_max_ziplist_entries: 512
+    hash_max_ziplist_value: 64
+    list_max_ziplist_entries: 512
+    list_max_ziplist_value: 64
+    set_max_intset_entries: 512
+    zset_max_ziplist_entries: 128
+    zset_max_ziplist_value: 64
+    activerehashing: "yes"

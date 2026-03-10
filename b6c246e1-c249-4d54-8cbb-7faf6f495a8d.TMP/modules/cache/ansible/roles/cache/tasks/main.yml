@@ -1,0 +1,43 @@
+---
+- name: Include Redis installation provider tasks
+  ansible.builtin.import_tasks: redis_install_provider.yml
+  tags:
+    - redis
+    - cache
+- name: Include Redis installation tasks
+  ansible.builtin.import_tasks: redis_install.yml
+  tags:
+    - redis
+    - cache
+- name: Include Redis configure provider tasks
+  ansible.builtin.import_tasks: redis_configure_provider.yml
+  tags:
+    - redis
+    - cache
+- name: Include Redis ulimit tasks
+  ansible.builtin.import_tasks: redis_ulimit.yml
+  tags:
+    - redis
+    - cache
+- name: Include Redis disable OS default tasks
+  ansible.builtin.import_tasks: redis_disable_os_default.yml
+  tags:
+    - redis
+    - cache
+- name: Include Redis configuration tasks
+  ansible.builtin.import_tasks: redis_configure.yml
+  tags:
+    - redis
+    - cache
+- name: Include Redis enable tasks
+  ansible.builtin.import_tasks: redis_enable.yml
+  tags:
+    - redis
+    - cache
+- name: Include Redis sentinel tasks
+  ansible.builtin.import_tasks: redis_sentinel.yml
+  when: redis_sentinels is defined and redis_sentinels | length > 0
+  tags:
+    - redis
+    - sentinel
+    - cache

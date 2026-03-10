@@ -1,0 +1,21 @@
+---
+- name: Enable and start Redis services (systemd)
+  ansible.builtin.systemd:
+    name: redis@{{ item.port | default('6379') }}
+    state: started
+    enabled: true
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+  when: ansible_service_mgr == 'systemd'
+  tags:
+    - redis
+    - cache
+- name: Enable and start Redis services (init)
+  ansible.builtin.service:
+    name: redis{{ item.port | default('6379') }}
+    state: started
+    enabled: true
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+  when: ansible_service_mgr != 'systemd'
+  tags:
+    - redis
+    - cache

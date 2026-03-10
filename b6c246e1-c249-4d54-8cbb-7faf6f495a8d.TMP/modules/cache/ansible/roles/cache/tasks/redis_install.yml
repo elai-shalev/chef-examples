@@ -1,0 +1,69 @@
+---
+- name: Install Redis from package
+  ansible.builtin.package:
+    name: redis-server
+    state: present
+  when: redis_install_from == 'package'
+  tags:
+    - redis
+    - cache
+- name: Create Redis user
+  ansible.builtin.user:
+    name: redis
+    system: true
+    shell: /bin/false
+    home: /var/lib/redis
+    createhome: true
+  when: redis_install_from == 'source'
+  tags:
+    - redis
+    - cache
+- name: Create Redis group
+  ansible.builtin.group:
+    name: redis
+    system: true
+  when: redis_install_from == 'source'
+  tags:
+    - redis
+    - cache
+- name: Download Redis source
+  ansible.builtin.get_url:
+    url: http://download.redis.io/releases/redis-{{ redis_version }}.tar.gz
+    dest: /tmp/redis-{{ redis_version }}.tar.gz
+    checksum: "{{ redis_checksum | default(omit) }}"
+  when: redis_install_from == 'source'
+  tags:
+    - redis
+    - cache
+- name: Extract Redis source
+  ansible.builtin.unarchive:
+    src: /tmp/redis-{{ redis_version }}.tar.gz
+    dest: /tmp
+    remote_src: true
+  when: redis_install_from == 'source'
+  tags:
+    - redis
+    - cache
+- name: Compile and install Redis
+  ansible.builtin.shell:
+    cmd: "cd /tmp/redis-{{ redis_version }}\nmake\nmake install\n"
+    creates: /usr/local/bin/redis-server
+  when: redis_install_from == 'source'
+  tags:
+    - redis
+    - cache
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  loop:
+    - /etc/redis
+    - /var/lib/redis
+    - /var/log/redis
+    - /var/run/redis
+  tags:
+    - redis
+    - cache
