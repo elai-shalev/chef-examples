@@ -1,0 +1,46 @@
+- name: Converge
+  hosts: all
+  vars:
+    nginx_multisite_sites:
+    - name: test.cluster.local
+      server_name: test.cluster.local
+      listen_port: 80
+      ssl_port: 443
+      ssl_enabled: true
+      ssl_certificate: /etc/ssl/certs/test.cluster.local.crt
+      ssl_certificate_key: /etc/ssl/private/test.cluster.local.key
+      document_root: /opt/server/test
+      access_log: /var/log/nginx/test.cluster.local-access.log
+      error_log: /var/log/nginx/test.cluster.local-error.log
+      extra_parameters: "location / {\n  try_files $uri $uri/ /index.html;\n}\n"
+    - name: ci.cluster.local
+      server_name: ci.cluster.local
+      listen_port: 80
+      ssl_port: 443
+      ssl_enabled: true
+      ssl_certificate: /etc/ssl/certs/ci.cluster.local.crt
+      ssl_certificate_key: /etc/ssl/private/ci.cluster.local.key
+      document_root: /opt/server/ci
+      access_log: /var/log/nginx/ci.cluster.local-access.log
+      error_log: /var/log/nginx/ci.cluster.local-error.log
+      extra_parameters: "location / {\n  proxy_pass http://localhost:8080;\n  proxy_set_header Host $host;\n  proxy_set_header X-Real-IP $remote_addr;\n}\n"
+    - name: status.cluster.local
+      server_name: status.cluster.local
+      listen_port: 80
+      ssl_port: 443
+      ssl_enabled: true
+      ssl_certificate: /etc/ssl/certs/status.cluster.local.crt
+      ssl_certificate_key: /etc/ssl/private/status.cluster.local.key
+      document_root: /opt/server/status
+      access_log: /var/log/nginx/status.cluster.local-access.log
+      error_log: /var/log/nginx/status.cluster.local-error.log
+      extra_parameters: "location /nginx_status {\n  stub_status on;\n  allow 127.0.0.1;\n  deny all;\n}\n"
+    nginx_multisite_security_options:
+      enable_fail2ban: true
+      enable_firewall: true
+      harden_ssh: true
+      harden_sysctl: true
+  tasks:
+  - name: Include nginx_multisite role
+    ansible.builtin.include_role:
+      name: nginx_multisite

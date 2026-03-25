@@ -1,0 +1,25 @@
+---
+galaxy_info:
+  role_name: nginx_multisite
+  author: DevOps Team
+  description: Installs and configures Nginx with multiple virtual hosts and security hardening
+  company: Example Corp
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+  galaxy_tags:
+    - nginx
+    - web
+    - security
+    - ssl
+    - multisite
+    - vhost
+dependencies: []
