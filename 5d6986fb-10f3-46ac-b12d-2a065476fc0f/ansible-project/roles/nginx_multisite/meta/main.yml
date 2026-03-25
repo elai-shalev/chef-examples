@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   role_name: nginx_multisite
+  namespace: x2a
   author: DevOps Team
   description: Installs and configures Nginx with multiple virtual hosts and security hardening
   company: Example Corp
