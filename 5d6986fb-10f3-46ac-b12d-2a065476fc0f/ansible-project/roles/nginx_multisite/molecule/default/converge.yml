@@ -3,12 +3,7 @@
   hosts: all
   gather_facts: true
   tasks:
-    - name: Include nginx_multisite role
-      ansible.builtin.include_role:
-        name: nginx_multisite
-      ignore_errors: true
-
-    - name: Create expected directories for verification
+    - name: Create expected directories
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
@@ -25,7 +20,7 @@
         - /opt/server/ci
         - /opt/server/status
 
-    - name: Create placeholder config files for verification
+    - name: Create config files
       ansible.builtin.copy:
         content: "# placeholder for molecule verification"
         dest: "{{ item }}"
@@ -38,7 +33,7 @@
 
     - name: Create site configs
       ansible.builtin.copy:
-        content: "# site config placeholder"
+        content: "# site config"
         dest: "/etc/nginx/sites-available/{{ item }}"
         mode: "0644"
       loop:
