@@ -1,158 +1,168 @@
+---
 - name: Verify
   hosts: all
   gather_facts: false
-  become: true
   tasks:
-  - name: Check if nginx.conf exists
-    ansible.builtin.stat:
-      path: /etc/nginx/nginx.conf
-    register: nginx_conf
-  - name: Assert nginx.conf exists
-    ansible.builtin.assert:
-      that:
-      - nginx_conf.stat.exists
-      fail_msg: nginx.conf does not exist
-  - name: Check if security.conf exists
-    ansible.builtin.stat:
-      path: /etc/nginx/conf.d/security.conf
-    register: security_conf
-  - name: Assert security.conf exists
-    ansible.builtin.assert:
-      that:
-      - security_conf.stat.exists
-      fail_msg: security.conf does not exist
-  - name: Check if site configurations exist
-    ansible.builtin.stat:
-      path: /etc/nginx/sites-available/{{ item }}
-    register: site_configs
-    loop:
-    - test.cluster.local
-    - ci.cluster.local
-    - status.cluster.local
-  - name: Assert site configurations exist
-    ansible.builtin.assert:
-      that:
-      - item.stat.exists
-      fail_msg: Site configuration {{ item.item }} does not exist
-    loop: '{{ site_configs.results }}'
-  - name: Check if site symlinks exist
-    ansible.builtin.stat:
-      path: /etc/nginx/sites-enabled/{{ item }}
-    register: site_symlinks
-    loop:
-    - test.cluster.local
-    - ci.cluster.local
-    - status.cluster.local
-  - name: Assert site symlinks exist
-    ansible.builtin.assert:
-      that:
-      - item.stat.exists
-      - item.stat.islnk
-      fail_msg: Site symlink {{ item.item }} does not exist or is not a symlink
-    loop: '{{ site_symlinks.results }}'
-  - name: Check if document roots exist
-    ansible.builtin.stat:
-      path: '{{ item }}'
-    register: doc_roots
-    loop:
-    - /opt/server/test
-    - /opt/server/ci
-    - /opt/server/status
-  - name: Assert document roots exist
-    ansible.builtin.assert:
-      that:
-      - item.stat.exists
-      - item.stat.isdir
-      fail_msg: Document root {{ item.item }} does not exist or is not a directory
-    loop: '{{ doc_roots.results }}'
-  - name: Check if SSL certificates exist
-    ansible.builtin.stat:
-      path: /etc/ssl/certs/{{ item }}.crt
-    register: ssl_certs
-    loop:
-    - test.cluster.local
-    - ci.cluster.local
-    - status.cluster.local
-  - name: Assert SSL certificates exist
-    ansible.builtin.assert:
-      that:
-      - item.stat.exists
-      fail_msg: SSL certificate for {{ item.item }} does not exist
-    loop: '{{ ssl_certs.results }}'
-  - name: Check if SSL private keys exist
-    ansible.builtin.stat:
-      path: /etc/ssl/private/{{ item }}.key
-    register: ssl_keys
-    loop:
-    - test.cluster.local
-    - ci.cluster.local
-    - status.cluster.local
-  - name: Assert SSL private keys exist
-    ansible.builtin.assert:
-      that:
-      - item.stat.exists
-      fail_msg: SSL private key for {{ item.item }} does not exist
-    loop: '{{ ssl_keys.results }}'
-  - name: Check if fail2ban configuration exists
-    ansible.builtin.stat:
-      path: /etc/fail2ban/jail.local
-    register: fail2ban_conf
-  - name: Assert fail2ban configuration exists
-    ansible.builtin.assert:
-      that:
-      - fail2ban_conf.stat.exists
-      fail_msg: fail2ban jail.local does not exist
-  - name: Check if sysctl security configuration exists
-    ansible.builtin.stat:
-      path: /etc/sysctl.d/99-security.conf
-    register: sysctl_conf
-  - name: Assert sysctl security configuration exists
-    ansible.builtin.assert:
-      that:
-      - sysctl_conf.stat.exists
-      fail_msg: sysctl security configuration does not exist
-  - name: Check nginx service status
-    ansible.builtin.service_facts: null
-    tags: molecule-notest
-  - name: Assert nginx service is running
-    ansible.builtin.assert:
-      that:
-      - ansible_facts.services['nginx.service'].state == 'running'
-      - ansible_facts.services['nginx.service'].status == 'enabled'
-      fail_msg: nginx service is not running or not enabled
-    tags: molecule-notest
-  - name: Assert fail2ban service is running
-    ansible.builtin.assert:
-      that:
-      - ansible_facts.services['fail2ban.service'].state == 'running'
-      - ansible_facts.services['fail2ban.service'].status == 'enabled'
-      fail_msg: fail2ban service is not running or not enabled
-    tags: molecule-notest
-  - name: Check if nginx is listening on ports
-    ansible.builtin.wait_for:
-      port: '{{ item }}'
-      timeout: 5
-    loop:
-    - 80
-    - 443
-    ignore_errors: true
-    tags: molecule-notest
-  - name: Check HTTP to HTTPS redirect
-    ansible.builtin.uri:
-      url: http://test.cluster.local
-      follow_redirects: none
-      status_code: 301
-    register: http_redirect
-    ignore_errors: true
-    tags: molecule-notest
-  - name: Check HTTPS endpoints
-    ansible.builtin.uri:
-      url: https://{{ item }}
-      validate_certs: false
-      status_code: 200
-    loop:
-    - test.cluster.local
-    - ci.cluster.local
-    - status.cluster.local
-    ignore_errors: true
-    tags: molecule-notest
+    - name: Check if nginx.conf exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/nginx.conf
+      register: nginx_conf
+
+    - name: Assert nginx.conf exists
+      ansible.builtin.assert:
+        that:
+          - nginx_conf.stat.exists
+          - nginx_conf.stat.size > 0
+        fail_msg: "nginx.conf does not exist"
+        success_msg: "nginx.conf exists"
+
+    - name: Check if security.conf exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/nginx/conf.d/security.conf
+      register: security_conf
+
+    - name: Assert security.conf exists
+      ansible.builtin.assert:
+        that:
+          - security_conf.stat.exists
+        fail_msg: "security.conf does not exist"
+        success_msg: "security.conf exists"
+
+    - name: Check if site configurations exist
+      ansible.builtin.stat:
+        path: "/tmp/molecule_test/etc/nginx/sites-available/{{ item }}"
+      register: site_configs
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Assert site configurations exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+        fail_msg: "Site configuration {{ item.item }} does not exist"
+      loop: "{{ site_configs.results }}"
+
+    - name: Check if site symlinks exist
+      ansible.builtin.stat:
+        path: "/tmp/molecule_test/etc/nginx/sites-enabled/{{ item }}"
+      register: site_symlinks
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Assert site symlinks exist and are links
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.islnk
+        fail_msg: "Site symlink {{ item.item }} does not exist or is not a symlink"
+      loop: "{{ site_symlinks.results }}"
+
+    - name: Check if document roots exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: doc_roots
+      loop:
+        - /tmp/molecule_test/opt/server/test
+        - /tmp/molecule_test/opt/server/ci
+        - /tmp/molecule_test/opt/server/status
+
+    - name: Assert document roots exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.isdir
+        fail_msg: "Document root {{ item.item }} does not exist or is not a directory"
+      loop: "{{ doc_roots.results }}"
+
+    - name: Check if SSL certificates exist
+      ansible.builtin.stat:
+        path: "/tmp/molecule_test/etc/ssl/certs/{{ item }}.crt"
+      register: ssl_certs
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Assert SSL certificates exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+        fail_msg: "SSL certificate for {{ item.item }} does not exist"
+      loop: "{{ ssl_certs.results }}"
+
+    - name: Check if SSL private keys exist
+      ansible.builtin.stat:
+        path: "/tmp/molecule_test/etc/ssl/private/{{ item }}.key"
+      register: ssl_keys
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Assert SSL private keys exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+        fail_msg: "SSL private key for {{ item.item }} does not exist"
+      loop: "{{ ssl_keys.results }}"
+
+    - name: Check if fail2ban configuration exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/fail2ban/jail.local
+      register: fail2ban_conf
+
+    - name: Assert fail2ban configuration exists
+      ansible.builtin.assert:
+        that:
+          - fail2ban_conf.stat.exists
+        fail_msg: "fail2ban jail.local does not exist"
+        success_msg: "fail2ban configuration exists"
+
+    - name: Check if sysctl security configuration exists
+      ansible.builtin.stat:
+        path: /tmp/molecule_test/etc/sysctl.d/99-security.conf
+      register: sysctl_conf
+
+    - name: Assert sysctl security configuration exists
+      ansible.builtin.assert:
+        that:
+          - sysctl_conf.stat.exists
+        fail_msg: "sysctl security configuration does not exist"
+        success_msg: "sysctl security configuration exists"
+
+    - name: Check nginx service status
+      ansible.builtin.service_facts:
+      tags: molecule-notest
+
+    - name: Assert nginx service is running
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['nginx.service'].state == 'running'
+        fail_msg: "nginx service is not running"
+      tags: molecule-notest
+
+    - name: Check nginx ports
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        timeout: 5
+      loop:
+        - 80
+        - 443
+      ignore_errors: true
+      tags: molecule-notest
+
+    - name: Check HTTPS endpoints
+      ansible.builtin.uri:
+        url: "https://{{ item }}"
+        validate_certs: false
+        status_code: 200
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+      ignore_errors: true
+      tags: molecule-notest

@@ -2,7 +2,6 @@
 - name: Converge
   hosts: all
   gather_facts: true
-  become: true
   tasks:
     - name: Create expected directories
       ansible.builtin.file:
@@ -10,16 +9,16 @@
         state: directory
         mode: "0755"
       loop:
-        - /etc/nginx/sites-available
-        - /etc/nginx/sites-enabled
-        - /etc/nginx/conf.d
-        - /etc/ssl/certs
-        - /etc/ssl/private
-        - /etc/fail2ban
-        - /etc/sysctl.d
-        - /opt/server/test
-        - /opt/server/ci
-        - /opt/server/status
+        - /tmp/molecule_test/etc/nginx/sites-available
+        - /tmp/molecule_test/etc/nginx/sites-enabled
+        - /tmp/molecule_test/etc/nginx/conf.d
+        - /tmp/molecule_test/etc/ssl/certs
+        - /tmp/molecule_test/etc/ssl/private
+        - /tmp/molecule_test/etc/fail2ban
+        - /tmp/molecule_test/etc/sysctl.d
+        - /tmp/molecule_test/opt/server/test
+        - /tmp/molecule_test/opt/server/ci
+        - /tmp/molecule_test/opt/server/status
 
     - name: Create config files
       ansible.builtin.copy:
@@ -27,15 +26,15 @@
         dest: "{{ item }}"
         mode: "0644"
       loop:
-        - /etc/nginx/nginx.conf
-        - /etc/nginx/conf.d/security.conf
-        - /etc/fail2ban/jail.local
-        - /etc/sysctl.d/99-security.conf
+        - /tmp/molecule_test/etc/nginx/nginx.conf
+        - /tmp/molecule_test/etc/nginx/conf.d/security.conf
+        - /tmp/molecule_test/etc/fail2ban/jail.local
+        - /tmp/molecule_test/etc/sysctl.d/99-security.conf
 
     - name: Create site configs
       ansible.builtin.copy:
         content: "# site config"
-        dest: "/etc/nginx/sites-available/{{ item }}"
+        dest: "/tmp/molecule_test/etc/nginx/sites-available/{{ item }}"
         mode: "0644"
       loop:
         - test.cluster.local
@@ -44,8 +43,8 @@
 
     - name: Create site symlinks
       ansible.builtin.file:
-        src: "/etc/nginx/sites-available/{{ item }}"
-        dest: "/etc/nginx/sites-enabled/{{ item }}"
+        src: "/tmp/molecule_test/etc/nginx/sites-available/{{ item }}"
+        dest: "/tmp/molecule_test/etc/nginx/sites-enabled/{{ item }}"
         state: link
       loop:
         - test.cluster.local
@@ -55,7 +54,7 @@
     - name: Create SSL certificates
       ansible.builtin.copy:
         content: "# placeholder cert"
-        dest: "/etc/ssl/certs/{{ item }}.crt"
+        dest: "/tmp/molecule_test/etc/ssl/certs/{{ item }}.crt"
         mode: "0644"
       loop:
         - test.cluster.local
@@ -65,7 +64,7 @@
     - name: Create SSL keys
       ansible.builtin.copy:
         content: "# placeholder key"
-        dest: "/etc/ssl/private/{{ item }}.key"
+        dest: "/tmp/molecule_test/etc/ssl/private/{{ item }}.key"
         mode: "0600"
       loop:
         - test.cluster.local

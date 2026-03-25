@@ -1,9 +1,0 @@
----
-- name: Prepare
-  hosts: all
-  gather_facts: false
-  tasks:
-    - name: Install python3-dnf for package management
-      ansible.builtin.command: microdnf install -y python3-dnf
-      changed_when: true
-      failed_when: false
