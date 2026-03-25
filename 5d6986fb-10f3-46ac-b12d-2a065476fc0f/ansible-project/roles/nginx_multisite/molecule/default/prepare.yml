@@ -1,20 +1,9 @@
 ---
 - name: Prepare
   hosts: all
-  gather_facts: true
+  gather_facts: false
   tasks:
-    - name: Install python3-dnf for package management (RHEL/Fedora)
-      ansible.builtin.raw: microdnf install -y python3-dnf
-      when: ansible_os_family == "RedHat"
+    - name: Install python3-dnf for package management
+      ansible.builtin.command: microdnf install -y python3-dnf
       changed_when: true
-
-    - name: Install required packages (Debian)
-      ansible.builtin.apt:
-        name:
-          - ca-certificates
-          - curl
-          - gnupg
-          - lsb-release
-        update_cache: true
-        cache_valid_time: 3600
-      when: ansible_os_family == "Debian"
+      failed_when: false
