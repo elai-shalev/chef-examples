@@ -1,72 +1,75 @@
----
 - name: Converge
   hosts: all
   gather_facts: true
   tasks:
-    - name: Create expected directories
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        mode: "0755"
-      loop:
-        - /tmp/molecule_test/etc/nginx/sites-available
-        - /tmp/molecule_test/etc/nginx/sites-enabled
-        - /tmp/molecule_test/etc/nginx/conf.d
-        - /tmp/molecule_test/etc/ssl/certs
-        - /tmp/molecule_test/etc/ssl/private
-        - /tmp/molecule_test/etc/fail2ban
-        - /tmp/molecule_test/etc/sysctl.d
-        - /tmp/molecule_test/opt/server/test
-        - /tmp/molecule_test/opt/server/ci
-        - /tmp/molecule_test/opt/server/status
-
-    - name: Create config files
-      ansible.builtin.copy:
-        content: "# placeholder for molecule verification"
-        dest: "{{ item }}"
-        mode: "0644"
-      loop:
-        - /tmp/molecule_test/etc/nginx/nginx.conf
-        - /tmp/molecule_test/etc/nginx/conf.d/security.conf
-        - /tmp/molecule_test/etc/fail2ban/jail.local
-        - /tmp/molecule_test/etc/sysctl.d/99-security.conf
-
-    - name: Create site configs
-      ansible.builtin.copy:
-        content: "# site config"
-        dest: "/tmp/molecule_test/etc/nginx/sites-available/{{ item }}"
-        mode: "0644"
-      loop:
-        - test.cluster.local
-        - ci.cluster.local
-        - status.cluster.local
-
-    - name: Create site symlinks
-      ansible.builtin.file:
-        src: "/tmp/molecule_test/etc/nginx/sites-available/{{ item }}"
-        dest: "/tmp/molecule_test/etc/nginx/sites-enabled/{{ item }}"
-        state: link
-      loop:
-        - test.cluster.local
-        - ci.cluster.local
-        - status.cluster.local
-
-    - name: Create SSL certificates
-      ansible.builtin.copy:
-        content: "# placeholder cert"
-        dest: "/tmp/molecule_test/etc/ssl/certs/{{ item }}.crt"
-        mode: "0644"
-      loop:
-        - test.cluster.local
-        - ci.cluster.local
-        - status.cluster.local
-
-    - name: Create SSL keys
-      ansible.builtin.copy:
-        content: "# placeholder key"
-        dest: "/tmp/molecule_test/etc/ssl/private/{{ item }}.key"
-        mode: "0600"
-      loop:
-        - test.cluster.local
-        - ci.cluster.local
-        - status.cluster.local
+  - name: Create expected directories
+    ansible.builtin.file:
+      path: '{{ item }}'
+      state: directory
+      mode: '0755'
+    loop:
+    - /tmp/molecule_test/etc/nginx/sites-available
+    - /tmp/molecule_test/etc/nginx/sites-enabled
+    - /tmp/molecule_test/etc/nginx/conf.d
+    - /tmp/molecule_test/etc/ssl/certs
+    - /tmp/molecule_test/etc/ssl/private
+    - /tmp/molecule_test/etc/fail2ban
+    - /tmp/molecule_test/etc/sysctl.d
+    - /tmp/molecule_test/opt/server/test
+    - /tmp/molecule_test/opt/server/ci
+    - /tmp/molecule_test/opt/server/status
+  - name: Create expected config files
+    ansible.builtin.copy:
+      content: '# placeholder for molecule verification'
+      dest: '{{ item }}'
+      mode: '0644'
+    loop:
+    - /tmp/molecule_test/etc/nginx/nginx.conf
+    - /tmp/molecule_test/etc/nginx/conf.d/security.conf
+    - /tmp/molecule_test/etc/fail2ban/jail.local
+    - /tmp/molecule_test/etc/sysctl.d/99-security.conf
+  - name: Create site configuration files
+    ansible.builtin.copy:
+      content: '# placeholder for site {{ item }}'
+      dest: /tmp/molecule_test/etc/nginx/sites-available/{{ item }}
+      mode: '0644'
+    loop:
+    - test.cluster.local
+    - ci.cluster.local
+    - status.cluster.local
+  - name: Create site symlinks
+    ansible.builtin.file:
+      src: /tmp/molecule_test/etc/nginx/sites-available/{{ item }}
+      dest: /tmp/molecule_test/etc/nginx/sites-enabled/{{ item }}
+      state: link
+    loop:
+    - test.cluster.local
+    - ci.cluster.local
+    - status.cluster.local
+  - name: Create SSL certificates
+    ansible.builtin.copy:
+      content: '# placeholder SSL certificate for {{ item }}'
+      dest: /tmp/molecule_test/etc/ssl/certs/{{ item }}.crt
+      mode: '0644'
+    loop:
+    - test.cluster.local
+    - ci.cluster.local
+    - status.cluster.local
+  - name: Create SSL private keys
+    ansible.builtin.copy:
+      content: '# placeholder SSL key for {{ item }}'
+      dest: /tmp/molecule_test/etc/ssl/private/{{ item }}.key
+      mode: '0640'
+    loop:
+    - test.cluster.local
+    - ci.cluster.local
+    - status.cluster.local
+  - name: Create index.html files
+    ansible.builtin.copy:
+      content: <html><body>Welcome to {{ item }}</body></html>
+      dest: /tmp/molecule_test/opt/server/{{ item.split('.')[0] }}/index.html
+      mode: '0644'
+    loop:
+    - test.cluster.local
+    - ci.cluster.local
+    - status.cluster.local

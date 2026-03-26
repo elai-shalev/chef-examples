@@ -1,5 +1,12 @@
 - name: Destroy
   hosts: localhost
-  connection: local
   gather_facts: false
-  tasks: []
+  tasks:
+  - name: Remove molecule test directories
+    ansible.builtin.file:
+      path: /tmp/molecule_test
+      state: absent
+    register: molecule_dir_removal
+  - name: Log molecule directory removal
+    ansible.builtin.debug:
+      msg: Removed molecule test directory at /tmp/molecule_test

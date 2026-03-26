@@ -1,5 +1,13 @@
 - name: Create
   hosts: localhost
-  connection: local
   gather_facts: false
-  tasks: []
+  tasks:
+  - name: Create molecule test directories
+    ansible.builtin.file:
+      path: /tmp/molecule_test
+      state: directory
+      mode: '0755'
+    register: molecule_dir
+  - name: Log molecule directory creation
+    ansible.builtin.debug:
+      msg: Created molecule test directory at {{ molecule_dir.path }}

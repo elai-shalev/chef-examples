@@ -8,8 +8,8 @@
 - name: Enable and start fail2ban
   ansible.builtin.service:
     name: fail2ban
-    state: started
     enabled: true
+    state: started
 - name: Configure fail2ban
   ansible.builtin.template:
     src: fail2ban.jail.local.j2
@@ -20,49 +20,61 @@
   ansible.builtin.command:
     cmd: ufw --force default deny
   register: ufw_default_deny
-  changed_when: "'Firewall is active and enabled' in ufw_default_deny.stdout"
-  failed_when: false
+  changed_when: ufw_default_deny.rc == 0
+  failed_when: ufw_default_deny.rc != 0 and "already" not in ufw_default_deny.stderr
+  when: security.ufw.enabled | bool
 - name: Allow SSH through UFW
   ansible.builtin.command:
     cmd: ufw allow ssh
   register: ufw_allow_ssh
-  changed_when: "'Rule added' in ufw_allow_ssh.stdout"
-  failed_when: false
+  changed_when: ufw_allow_ssh.rc == 0
+  failed_when: ufw_allow_ssh.rc != 0 and "already" not in ufw_allow_ssh.stderr
+  when: security.ufw.enabled | bool
 - name: Allow HTTP through UFW
   ansible.builtin.command:
     cmd: ufw allow http
   register: ufw_allow_http
-  changed_when: "'Rule added' in ufw_allow_http.stdout"
-  failed_when: false
+  changed_when: ufw_allow_http.rc == 0
+  failed_when: ufw_allow_http.rc != 0 and "already" not in ufw_allow_http.stderr
+  when: security.ufw.enabled | bool
 - name: Allow HTTPS through UFW
   ansible.builtin.command:
     cmd: ufw allow https
   register: ufw_allow_https
-  changed_when: "'Rule added' in ufw_allow_https.stdout"
-  failed_when: false
+  changed_when: ufw_allow_https.rc == 0
+  failed_when: ufw_allow_https.rc != 0 and "already" not in ufw_allow_https.stderr
+  when: security.ufw.enabled | bool
 - name: Enable UFW
   ansible.builtin.command:
     cmd: ufw --force enable
   register: ufw_enable
-  changed_when: "'Firewall is active and enabled' in ufw_enable.stdout"
-  failed_when: false
+  changed_when: ufw_enable.rc == 0
+  failed_when: ufw_enable.rc != 0 and "already" not in ufw_enable.stderr
+  when: security.ufw.enabled | bool
 - name: Configure system security settings
   ansible.builtin.template:
     src: sysctl-security.conf.j2
     dest: /etc/sysctl.d/99-security.conf
     mode: "0644"
   notify: Reload sysctl
-- name: Disable root SSH login
+- name: Disable root login in SSH
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: ^#?PermitRootLogin
+    regexp: ^#?PermitRootLogin.*
     line: PermitRootLogin no
+  register: ssh_config_root
+  changed_when: ssh_config_root.changed
   when: security.ssh.disable_root | bool
-  notify: Restart ssh
-- name: Disable SSH password authentication
+- name: Disable password authentication in SSH
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: ^#?PasswordAuthentication
+    regexp: ^#?PasswordAuthentication.*
     line: PasswordAuthentication no
+  register: ssh_config_password
+  changed_when: ssh_config_password.changed
   when: not security.ssh.password_auth | bool
-  notify: Restart ssh
+- name: Restart SSH if configuration changed
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+  when: ssh_config_root.changed or ssh_config_password.changed

@@ -7,7 +7,7 @@
       "target_path": "./ansible/roles/nginx_multisite/meta/main.yml",
       "status": "complete",
       "description": "Role metadata",
-      "notes": "Created meta/main.yml with role metadata"
+      "notes": "Created meta/main.yml with Galaxy info"
     },
     {
       "category": "structure",
@@ -15,15 +15,15 @@
       "target_path": "./ansible/roles/nginx_multisite/handlers/main.yml",
       "status": "complete",
       "description": "Role handlers",
-      "notes": "Created handlers file with all necessary handlers"
+      "notes": "Created handlers file with nginx, fail2ban, and sysctl handlers"
     },
     {
       "category": "structure",
       "source_path": "N/A",
-      "target_path": "./ansible/roles/nginx_multisite/tasks/main.yml",
+      "target_path": "./ansible/roles/nginx_multisite/defaults/main.yml",
       "status": "complete",
-      "description": "Main tasks file",
-      "notes": "Created main tasks file that imports all other task files"
+      "description": "Role defaults",
+      "notes": "Created defaults/main.yml with all necessary variables"
     },
     {
       "category": "recipes",
@@ -31,7 +31,7 @@
       "target_path": "./ansible/roles/nginx_multisite/tasks/main.yml",
       "status": "complete",
       "description": "Main recipe that includes other recipes",
-      "notes": "Created main tasks file that imports all other task files"
+      "notes": "Converted default.rb to main.yml with import_tasks"
     },
     {
       "category": "recipes",
@@ -39,31 +39,31 @@
       "target_path": "./ansible/roles/nginx_multisite/tasks/nginx.yml",
       "status": "complete",
       "description": "Nginx installation and configuration",
-      "notes": "Converted nginx recipe to Ansible tasks"
+      "notes": "Converted nginx.rb to nginx.yml with appropriate Ansible modules"
     },
     {
       "category": "recipes",
       "source_path": "cookbooks/nginx-multisite/recipes/security.rb",
       "target_path": "./ansible/roles/nginx_multisite/tasks/security.yml",
       "status": "complete",
-      "description": "Security hardening tasks",
-      "notes": "Converted security recipe to Ansible tasks"
+      "description": "Security configuration (fail2ban, ufw, sysctl, SSH)",
+      "notes": "Converted security.rb to security.yml with appropriate Ansible modules"
     },
     {
       "category": "recipes",
       "source_path": "cookbooks/nginx-multisite/recipes/sites.rb",
       "target_path": "./ansible/roles/nginx_multisite/tasks/sites.yml",
       "status": "complete",
-      "description": "Virtual hosts configuration",
-      "notes": "Converted sites recipe to Ansible tasks"
+      "description": "Site configuration for virtual hosts",
+      "notes": "Converted sites.rb to sites.yml with appropriate Ansible modules"
     },
     {
       "category": "recipes",
       "source_path": "cookbooks/nginx-multisite/recipes/ssl.rb",
       "target_path": "./ansible/roles/nginx_multisite/tasks/ssl.yml",
       "status": "complete",
-      "description": "SSL certificates configuration",
-      "notes": "Converted ssl recipe to Ansible tasks"
+      "description": "SSL certificate generation and configuration",
+      "notes": "Converted ssl.rb to ssl.yml with appropriate Ansible modules"
     },
     {
       "category": "templates",
@@ -71,15 +71,15 @@
       "target_path": "./ansible/roles/nginx_multisite/templates/fail2ban.jail.local.j2",
       "status": "complete",
       "description": "Fail2ban jail configuration",
-      "notes": "Converted fail2ban jail configuration from ERB to Jinja2"
+      "notes": "Converted fail2ban.jail.local template (no ERB variables to convert)"
     },
     {
       "category": "templates",
       "source_path": "cookbooks/nginx-multisite/templates/default/nginx.conf.erb",
       "target_path": "./ansible/roles/nginx_multisite/templates/nginx.conf.j2",
       "status": "complete",
-      "description": "Nginx main configuration",
-      "notes": "Converted nginx.conf from ERB to Jinja2"
+      "description": "Main Nginx configuration",
+      "notes": "Converted nginx.conf template (no ERB variables to convert)"
     },
     {
       "category": "templates",
@@ -87,23 +87,23 @@
       "target_path": "./ansible/roles/nginx_multisite/templates/security.conf.j2",
       "status": "complete",
       "description": "Nginx security configuration",
-      "notes": "Converted security.conf from ERB to Jinja2"
+      "notes": "Converted security.conf template (no ERB variables to convert)"
     },
     {
       "category": "templates",
       "source_path": "cookbooks/nginx-multisite/templates/default/site.conf.erb",
       "target_path": "./ansible/roles/nginx_multisite/templates/site.conf.j2",
       "status": "complete",
-      "description": "Nginx virtual host configuration",
-      "notes": "Converted site.conf from ERB to Jinja2, replacing @variable with variable"
+      "description": "Nginx site configuration template",
+      "notes": "Converted site.conf template from ERB to Jinja2 format"
     },
     {
       "category": "templates",
       "source_path": "cookbooks/nginx-multisite/templates/default/sysctl-security.conf.erb",
       "target_path": "./ansible/roles/nginx_multisite/templates/sysctl-security.conf.j2",
       "status": "complete",
-      "description": "System security configuration",
-      "notes": "Converted sysctl-security.conf from ERB to Jinja2"
+      "description": "System security configuration for sysctl",
+      "notes": "Converted sysctl-security.conf template (no ERB variables to convert)"
     },
     {
       "category": "attributes",
@@ -116,10 +116,18 @@
     {
       "category": "structure",
       "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/files",
+      "status": "missing",
+      "description": "Static files directory",
+      "notes": "Created files directory with .gitkeep"
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
       "target_path": "./ansible/roles/nginx_multisite/molecule/default/molecule.yml",
       "status": "complete",
       "description": "Molecule scenario configuration",
-      "notes": "Created molecule.yml for molecule testing"
+      "notes": "Created molecule.yml with delegated driver"
     },
     {
       "category": "structure",
@@ -127,7 +135,7 @@
       "target_path": "./ansible/roles/nginx_multisite/molecule/default/converge.yml",
       "status": "complete",
       "description": "Molecule converge playbook",
-      "notes": "Created converge.yml for molecule testing with appropriate test variables"
+      "notes": "Created converge.yml with test directory structure"
     },
     {
       "category": "structure",
@@ -135,7 +143,7 @@
       "target_path": "./ansible/roles/nginx_multisite/molecule/default/verify.yml",
       "status": "complete",
       "description": "Molecule verification tasks",
-      "notes": "Created verify.yml for molecule testing with appropriate checks"
+      "notes": "Created verify.yml with comprehensive tests"
     },
     {
       "category": "structure",
@@ -155,11 +163,27 @@
     },
     {
       "category": "dependencies",
-      "source_path": "N/A",
+      "source_path": "collection:community.nginx",
       "target_path": "./ansible/roles/nginx_multisite/requirements.yml",
       "status": "complete",
-      "description": "Role dependencies file",
-      "notes": "Created requirements.yml file (no external collections required)"
+      "description": "Nginx collection for managing Nginx configurations",
+      "notes": "Created requirements.yml with required collections"
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:ansible.posix",
+      "target_path": "./ansible/roles/nginx_multisite/requirements.yml",
+      "status": "complete",
+      "description": "General utilities collection",
+      "notes": "Added ansible.posix collection to requirements.yml"
+    },
+    {
+      "category": "dependencies",
+      "source_path": "collection:ansible.utils",
+      "target_path": "./ansible/roles/nginx_multisite/requirements.yml",
+      "status": "complete",
+      "description": "Collection for firewall management",
+      "notes": "Added ansible.utils collection to requirements.yml"
     },
     {
       "category": "structure",
@@ -167,15 +191,15 @@
       "target_path": "ansible/roles/nginx_multisite/meta/main.yml",
       "status": "complete",
       "description": "Created standard meta/main.yml",
-      "notes": "Created meta/main.yml with role metadata"
+      "notes": ""
     },
     {
-      "category": "molecule",
+      "category": "dependencies",
       "source_path": "N/A",
-      "target_path": "./ansible/roles/nginx_multisite/molecule/default/prepare.yml",
+      "target_path": "./ansible/roles/nginx_multisite/requirements.yml",
       "status": "complete",
-      "description": "Molecule prepare.yml file",
-      "notes": "Created prepare.yml for molecule testing"
+      "description": "Create requirements.yml file with required collections",
+      "notes": "Created requirements.yml with community.nginx, ansible.posix, and ansible.utils collections"
     }
   ]
 }

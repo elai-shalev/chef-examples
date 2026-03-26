@@ -1,23 +1,17 @@
----
-- name: Reload nginx
-  ansible.builtin.service:
-    name: nginx
-    state: reloaded
 - name: Restart nginx
   ansible.builtin.service:
     name: nginx
     state: restarted
+- name: Reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
 - name: Restart fail2ban
   ansible.builtin.service:
     name: fail2ban
     state: restarted
-- name: Restart ssh
-  ansible.builtin.service:
-    name: ssh
-    state: restarted
 - name: Reload sysctl
-  ansible.builtin.shell: set -o pipefail && sysctl -p /etc/sysctl.d/99-security.conf | grep -v "^$"
-  args:
-    executable: /bin/bash
-  register: sysctl_reload
-  changed_when: sysctl_reload.stdout_lines | length > 0
+  ansible.builtin.command:
+    cmd: sysctl -p /etc/sysctl.d/99-security.conf
+  register: sysctl_result
+  changed_when: false

@@ -3,13 +3,13 @@
   ansible.builtin.package:
     name: nginx
     state: present
-- name: Configure nginx.conf
+- name: Configure nginx main configuration
   ansible.builtin.template:
     src: nginx.conf.j2
     dest: /etc/nginx/nginx.conf
     mode: "0644"
   notify: Reload nginx
-- name: Configure security.conf
+- name: Configure nginx security settings
   ansible.builtin.template:
     src: security.conf.j2
     dest: /etc/nginx/conf.d/security.conf
@@ -18,9 +18,9 @@
 - name: Enable and start nginx
   ansible.builtin.service:
     name: nginx
-    state: started
     enabled: true
-- name: Create document root directories
+    state: started
+- name: Create document root directories for sites
   ansible.builtin.file:
     path: "{{ item.value.document_root }}"
     owner: www-data
@@ -29,9 +29,10 @@
     state: directory
     recurse: true
   loop: "{{ nginx.sites | dict2items }}"
-- name: Copy index.html files
+- name: Create index.html files for each site
   ansible.builtin.copy:
-    src: "{{ item.key.split('.')[0] }}/index.html"
+    content: "<!DOCTYPE html> <html> <head> <title>{{ item.key }}</title> </head> <body> <h1>Welcome to {{ item.key }}</h1> <p>This is the default page for {{ item.key
+      }}</p> </body> </html> "
     dest: "{{ item.value.document_root }}/index.html"
     owner: www-data
     group: www-data

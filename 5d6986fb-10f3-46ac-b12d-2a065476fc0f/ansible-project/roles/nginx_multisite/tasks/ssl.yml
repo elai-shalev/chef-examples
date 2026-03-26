@@ -25,9 +25,9 @@
     state: directory
 - name: Generate self-signed SSL certificates
   ansible.builtin.shell:
-    cmd: "openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n  -keyout {{ nginx.ssl.private_key_path }}/{{ item.key }}.key \\\n  -out {{ nginx.ssl.certificate_path
-      }}/{{ item.key }}.crt \\\n  -subj \"/C=US/ST=Example/L=Example/O=Example Org/OU=IT/CN={{ item.key }}/emailAddress=admin@example.com\"\nchmod 640 {{ nginx.ssl.private_key_path
-      }}/{{ item.key }}.key\nchown root:ssl-cert {{ nginx.ssl.private_key_path }}/{{ item.key }}.key\n"
+    cmd: 'openssl req -x509 -nodes -days 365 -newkey rsa:2048 \ -keyout {{ nginx.ssl.private_key_path }}/{{ item.key }}.key \ -out {{ nginx.ssl.certificate_path }}/{{
+      item.key }}.crt \ -subj "/C=US/ST=Example/L=Example/O=Example Org/OU=IT/CN={{ item.key }}/emailAddress=admin@example.com" chmod 640 {{ nginx.ssl.private_key_path
+      }}/{{ item.key }}.key chown root:ssl-cert {{ nginx.ssl.private_key_path }}/{{ item.key }}.key '
   args:
     creates: "{{ nginx.ssl.certificate_path }}/{{ item.key }}.crt"
   loop: "{{ nginx.sites | dict2items }}"
