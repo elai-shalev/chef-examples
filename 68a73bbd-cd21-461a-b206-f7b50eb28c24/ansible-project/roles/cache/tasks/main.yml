@@ -1,0 +1,35 @@
+---
+- name: Install memcached
+  ansible.builtin.package:
+    name: memcached
+    state: present
+- name: Ensure memcached service is enabled and running
+  ansible.builtin.service:
+    name: memcached
+    state: started
+    enabled: true
+- name: Create Redis log directory
+  ansible.builtin.file:
+    path: /var/log/redis
+    owner: redis
+    group: redis
+    mode: "0755"
+    state: directory
+    recurse: true
+- name: Install Redis
+  ansible.builtin.package:
+    name: redis-server
+    state: present
+- name: Configure Redis
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/6379.conf
+    owner: redis
+    group: redis
+    mode: "0644"
+  notify: Restart Redis
+- name: Ensure Redis service is enabled and running
+  ansible.builtin.service:
+    name: redis-server
+    state: started
+    enabled: true

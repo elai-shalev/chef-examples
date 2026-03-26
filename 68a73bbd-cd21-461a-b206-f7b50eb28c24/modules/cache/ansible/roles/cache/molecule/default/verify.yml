@@ -1,0 +1,47 @@
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+  - name: Check Redis config file exists
+    ansible.builtin.stat:
+      path: /tmp/molecule_test/etc/redis/6379.conf
+    register: redis_config
+  - name: Assert Redis config file was created
+    ansible.builtin.assert:
+      that:
+      - redis_config.stat.exists
+      - redis_config.stat.size > 0
+      fail_msg: Redis config file not found
+      success_msg: Redis config file exists
+  - name: Check Redis log directory exists
+    ansible.builtin.stat:
+      path: /tmp/molecule_test/var/log/redis
+    register: redis_log_dir
+  - name: Assert Redis log directory was created
+    ansible.builtin.assert:
+      that:
+      - redis_log_dir.stat.exists
+      - redis_log_dir.stat.isdir
+      fail_msg: Redis log directory not found
+      success_msg: Redis log directory exists
+  - name: Check Memcached config file exists
+    ansible.builtin.stat:
+      path: /tmp/molecule_test/etc/memcached/memcached.conf
+    register: memcached_config
+  - name: Assert Memcached config file was created
+    ansible.builtin.assert:
+      that:
+      - memcached_config.stat.exists
+      - memcached_config.stat.size > 0
+      fail_msg: Memcached config file not found
+      success_msg: Memcached config file exists
+  - name: Check Redis config contains password
+    ansible.builtin.slurp:
+      src: /tmp/molecule_test/etc/redis/6379.conf
+    register: redis_config_content
+  - name: Assert Redis config has password
+    ansible.builtin.assert:
+      that:
+      - '''requirepass'' in (redis_config_content.content | b64decode)'
+      fail_msg: Redis config does not contain password
+      success_msg: Redis config contains password

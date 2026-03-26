@@ -1,0 +1,13 @@
+- name: Prepare
+  hosts: all
+  tasks:
+  - name: Install required packages
+    ansible.builtin.apt:
+      name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      update_cache: true
+      cache_valid_time: 3600
+    when: ansible_os_family == "Debian"

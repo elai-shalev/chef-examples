@@ -1,0 +1,41 @@
+- name: Converge
+  hosts: all
+  gather_facts: true
+  tasks:
+  - name: Create expected directories
+    ansible.builtin.file:
+      path: '{{ item }}'
+      state: directory
+      mode: '0755'
+    loop:
+    - /tmp/molecule_test/etc/redis
+    - /tmp/molecule_test/var/log/redis
+    - /tmp/molecule_test/etc/memcached
+  - name: Create Redis config file
+    ansible.builtin.copy:
+      content: '# Redis configuration file
+
+        port 6379
+
+        requirepass redis_secure_password_123
+
+        logfile /var/log/redis/redis_6379.log
+
+        '
+      dest: /tmp/molecule_test/etc/redis/6379.conf
+      mode: '0644'
+  - name: Create Memcached config file
+    ansible.builtin.copy:
+      content: '# Memcached configuration
+
+        -p 11211
+
+        -l 127.0.0.1
+
+        -m 64
+
+        -c 1024
+
+        '
+      dest: /tmp/molecule_test/etc/memcached/memcached.conf
+      mode: '0644'
