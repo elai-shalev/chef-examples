@@ -1,0 +1,4 @@
+---
+- name: Reload systemd daemon
+  ansible.posix.systemd:
+    daemon_reload: true

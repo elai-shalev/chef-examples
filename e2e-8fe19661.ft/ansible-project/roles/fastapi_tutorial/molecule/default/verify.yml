@@ -1,0 +1,66 @@
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+  - name: Check application directory exists
+    ansible.builtin.stat:
+      path: /tmp/molecule_test/opt/fastapi-tutorial
+    register: app_dir
+  - name: Assert application directory was created
+    ansible.builtin.assert:
+      that:
+      - app_dir.stat.exists
+      - app_dir.stat.isdir
+      fail_msg: Application directory not found
+      success_msg: Application directory exists
+  - name: Check virtual environment exists
+    ansible.builtin.stat:
+      path: /tmp/molecule_test/opt/fastapi-tutorial/venv
+    register: venv_dir
+  - name: Assert virtual environment was created
+    ansible.builtin.assert:
+      that:
+      - venv_dir.stat.exists
+      - venv_dir.stat.isdir
+      fail_msg: Virtual environment not found
+      success_msg: Virtual environment exists
+  - name: Check environment file exists
+    ansible.builtin.stat:
+      path: /tmp/molecule_test/opt/fastapi-tutorial/.env
+    register: env_file
+  - name: Assert environment file was created
+    ansible.builtin.assert:
+      that:
+      - env_file.stat.exists
+      - env_file.stat.size > 0
+      fail_msg: Environment file not found
+      success_msg: Environment file exists
+  - name: Check systemd service file exists
+    ansible.builtin.stat:
+      path: /tmp/molecule_test/etc/systemd/system/fastapi-tutorial.service
+    register: service_file
+  - name: Assert systemd service file was created
+    ansible.builtin.assert:
+      that:
+      - service_file.stat.exists
+      - service_file.stat.size > 0
+      fail_msg: Systemd service file not found
+      success_msg: Systemd service file exists
+  - name: Check service file content
+    ansible.builtin.slurp:
+      src: /tmp/molecule_test/etc/systemd/system/fastapi-tutorial.service
+    register: service_content
+  - name: Assert service file has correct content
+    ansible.builtin.assert:
+      that:
+      - '''ExecStart='' in service_content.content | b64decode'
+      - '''uvicorn app.main:app'' in service_content.content | b64decode'
+      fail_msg: Service file content is incorrect
+      success_msg: Service file content is correct
+  - name: Check service status
+    ansible.builtin.command:
+      cmd: systemctl status fastapi-tutorial
+    register: service_status
+    failed_when: false
+    changed_when: false
+    tags: molecule-notest
