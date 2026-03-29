@@ -1,0 +1,22 @@
+---
+redis_packages:
+  Debian:
+    - redis-server
+    - redis-tools
+  RedHat:
+    - redis
+redis_build_deps:
+  Debian:
+    - build-essential
+    - tcl
+    - make
+    - gcc
+  RedHat:
+    - gcc
+    - make
+    - tcl
+    - which
+redis_systemd_template: redis@.service.j2
+redis_init_template: redis.init.j2
+redis_upstart_template: redis.upstart.conf.j2
+redis_conf_template: redis.conf.j2

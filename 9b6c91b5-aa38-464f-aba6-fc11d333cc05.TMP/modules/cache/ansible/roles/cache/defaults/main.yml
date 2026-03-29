@@ -1,0 +1,21 @@
+---
+redis_version: 6.2.6
+redis_install_type: source
+redis_user: redis
+redis_group: redis
+redis_conf_dir: /etc/redis
+redis_log_dir: /var/log/redis
+redis_data_dir: /var/lib/redis
+redis_conf_template: redis.conf.j2
+redis_instances:
+  - port: 6379
+    bind: 127.0.0.1
+    daemonize: "yes"
+    databases: 16
+    timeout: 0
+    tcp_keepalive: 0
+    maxclients: 10000
+    save:
+      - 900 1
+      - 300 10
+      - 60 10000

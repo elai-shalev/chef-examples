@@ -1,0 +1,10 @@
+---
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: ansible_service_mgr == "systemd"
+- name: restart redis
+  ansible.builtin.service:
+    name: redis_{{ item.port }}
+    state: restarted
+  loop: "{{ redis_instances }}"

@@ -1,0 +1,15 @@
+---
+- name: Enable and start Redis services (systemd)
+  ansible.builtin.systemd:
+    name: redis@{{ item.port }}
+    state: started
+    enabled: true
+  loop: "{{ redis_instances }}"
+  when: ansible_service_mgr == "systemd"
+- name: Enable and start Redis services (init)
+  ansible.builtin.service:
+    name: redis_{{ item.port }}
+    state: started
+    enabled: true
+  loop: "{{ redis_instances }}"
+  when: ansible_service_mgr != "systemd"

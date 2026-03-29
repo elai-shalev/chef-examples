@@ -1,0 +1,16 @@
+---
+- name: Create Redis group
+  ansible.builtin.group:
+    name: "{{ redis_group }}"
+    state: present
+    system: true
+- name: Create Redis user
+  ansible.builtin.user:
+    name: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    home: /var/lib/redis
+    shell: /bin/false
+    system: true
+    create_home: false
+- name: Include Redis install provider tasks
+  ansible.builtin.include_tasks: redis_install_provider.yml

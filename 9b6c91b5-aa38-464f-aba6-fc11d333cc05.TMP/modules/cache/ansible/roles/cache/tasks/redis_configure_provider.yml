@@ -1,0 +1,33 @@
+---
+- name: Create Redis instance directories
+  ansible.builtin.file:
+    path: "{{ redis_data_dir }}/{{ item.port }}"
+    state: directory
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0755"
+  loop: "{{ redis_instances }}"
+- name: Create Redis log files
+  ansible.builtin.file:
+    path: "{{ redis_log_dir }}/redis-{{ item.port }}.log"
+    state: touch
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0644"
+  loop: "{{ redis_instances }}"
+- name: Create Redis pid directory
+  ansible.builtin.file:
+    path: /var/run/redis
+    state: directory
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0755"
+- name: Create Redis configuration files
+  ansible.builtin.template:
+    src: "{{ redis_conf_template }}"
+    dest: "{{ redis_conf_dir }}/{{ item.port }}.conf"
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0644"
+  loop: "{{ redis_instances }}"
+  notify: restart redis

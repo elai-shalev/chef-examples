@@ -1,0 +1,17 @@
+[Unit]
+Description=Redis instance %i
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/redis-server {{ redis_conf_dir }}/%i.conf
+PIDFile=/var/run/redis/redis-%i.pid
+TimeoutStopSec=0
+Restart=always
+User={{ redis_user }}
+Group={{ redis_group }}
+RuntimeDirectory=redis
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+---
+- name: Include Redis install tasks
+  ansible.builtin.include_tasks: redis_install.yml
+  tags:
+    - redis
+    - redis_install
+- name: Include Redis configure tasks
+  ansible.builtin.include_tasks: redis_configure.yml
+  tags:
+    - redis
+    - redis_configure
+- name: Include Redis service tasks
+  ansible.builtin.include_tasks: redis_service.yml
+  tags:
+    - redis
+    - redis_service

@@ -1,0 +1,40 @@
+---
+- name: Install Redis prerequisites for Debian
+  ansible.builtin.package:
+    name: "{{ redis_build_deps['Debian'] }}"
+    state: present
+  when:
+    - ansible_os_family == "Debian"
+    - redis_install_type == "source"
+- name: Install Redis prerequisites for RedHat
+  ansible.builtin.package:
+    name: "{{ redis_build_deps['RedHat'] }}"
+    state: present
+  when:
+    - ansible_os_family == "RedHat"
+    - redis_install_type == "source"
+- name: Create Redis group
+  ansible.builtin.group:
+    name: "{{ redis_group }}"
+    state: present
+    system: true
+- name: Create Redis user
+  ansible.builtin.user:
+    name: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    home: /var/lib/redis
+    shell: /bin/false
+    system: true
+    create_home: false
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0755"
+  loop:
+    - "{{ redis_conf_dir }}"
+    - "{{ redis_log_dir }}"
+    - "{{ redis_data_dir }}"
+    - /var/run/redis

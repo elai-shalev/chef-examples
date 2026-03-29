@@ -1,0 +1,39 @@
+---
+- name: Create Redis init scripts (SysV)
+  ansible.builtin.template:
+    src: redis.init.j2
+    dest: /etc/init.d/redis_{{ item.port }}
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ redis_instances }}"
+  when: ansible_service_mgr == "sysvinit"
+  notify: restart redis
+- name: Create Redis upstart scripts
+  ansible.builtin.template:
+    src: redis.upstart.conf.j2
+    dest: /etc/init/redis_{{ item.port }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ redis_instances }}"
+  when: ansible_service_mgr == "upstart"
+  notify: restart redis
+- name: Create Redis systemd service files
+  ansible.builtin.template:
+    src: redis.systemd.j2
+    dest: /etc/systemd/system/redis_{{ item.port }}.service
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ redis_instances }}"
+  when: ansible_service_mgr == "systemd"
+  notify:
+    - reload systemd
+    - restart redis
+- name: Enable and start Redis services
+  ansible.builtin.service:
+    name: redis_{{ item.port }}
+    enabled: true
+    state: started
+  loop: "{{ redis_instances }}"

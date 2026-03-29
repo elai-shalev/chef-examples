@@ -1,0 +1,6 @@
+---
+memcached_packages:
+  - memcached
+  - libmemcached-tools
+memcached_config_file: "{{ 'memcached.conf' if ansible_os_family == 'Debian' else 'sysconfig/memcached' }}"
+memcached_config_dir: "{{ '/etc' if ansible_os_family == 'Debian' else '/etc/sysconfig' }}"
