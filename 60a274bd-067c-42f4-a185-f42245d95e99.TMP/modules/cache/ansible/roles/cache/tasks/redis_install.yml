@@ -1,0 +1,41 @@
+---
+- name: Create Redis user
+  ansible.builtin.user:
+    name: redis
+    system: true
+    shell: /bin/false
+    home: /var/lib/redis
+    create_home: false
+- name: Create Redis group
+  ansible.builtin.group:
+    name: redis
+    system: true
+- name: Install Redis dependencies
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - tcl
+    state: present
+  when: ansible_os_family == "Debian" and redis_install_from_package | default(true)
+- name: Install Redis package for Debian/Ubuntu
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+  when: ansible_os_family == "Debian" and redis_install_from_package | default(true)
+- name: Install Redis package for RedHat/CentOS
+  ansible.builtin.dnf:
+    name: redis
+    state: present
+  when: ansible_os_family == "RedHat" and redis_install_from_package | default(true)
+- name: Create Redis directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  with_items:
+    - /var/run/redis
+    - /var/lib/redis
+    - /var/log/redis
+    - /etc/redis

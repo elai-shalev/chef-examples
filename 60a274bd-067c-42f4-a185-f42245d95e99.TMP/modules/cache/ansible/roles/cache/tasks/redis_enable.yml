@@ -1,0 +1,24 @@
+---
+- name: Detect init system
+  ansible.builtin.command: ps -p 1 -o comm=
+  register: init_system
+  changed_when: false
+  check_mode: false
+- name: Enable and start Redis service (systemd)
+  ansible.builtin.systemd:
+    name: redis@{{ redis_port | default('6379') }}
+    state: started
+    enabled: true
+  when: init_system.stdout == 'systemd'
+- name: Enable and start Redis service (init)
+  ansible.builtin.service:
+    name: redis{{ redis_port | default('6379') }}
+    state: started
+    enabled: true
+  when: init_system.stdout == 'init'
+- name: Enable and start Redis service (upstart)
+  ansible.builtin.service:
+    name: redis{{ redis_port | default('6379') }}
+    state: started
+    enabled: true
+  when: init_system.stdout == 'upstart'

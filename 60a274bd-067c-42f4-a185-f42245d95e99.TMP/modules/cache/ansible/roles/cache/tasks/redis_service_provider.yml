@@ -1,0 +1,43 @@
+---
+- name: Detect init system
+  ansible.builtin.command: ps -p 1 -o comm=
+  register: init_system
+  changed_when: false
+  check_mode: false
+- name: Create systemd service file
+  ansible.builtin.template:
+    src: redis@.service.j2
+    dest: /etc/systemd/system/redis@.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: init_system.stdout == 'systemd'
+  notify: reload systemd
+- name: Create init script
+  ansible.builtin.template:
+    src: redis.init.j2
+    dest: /etc/init.d/redis{{ redis_port | default('6379') }}
+    owner: root
+    group: root
+    mode: "0755"
+  when: init_system.stdout == 'init'
+- name: Create upstart configuration
+  ansible.builtin.template:
+    src: redis.upstart.conf.j2
+    dest: /etc/init/redis{{ redis_port | default('6379') }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: init_system.stdout == 'upstart'
+- name: Enable and start Redis service (systemd)
+  ansible.builtin.systemd:
+    name: redis@{{ redis_port | default('6379') }}
+    state: started
+    enabled: true
+  when: init_system.stdout == 'systemd' and redis_service_enabled | default(true)
+- name: Enable and start Redis service (init/upstart)
+  ansible.builtin.service:
+    name: redis{{ redis_port | default('6379') }}
+    state: started
+    enabled: true
+  when: (init_system.stdout == 'init' or init_system.stdout == 'upstart') and redis_service_enabled | default(true)

@@ -1,0 +1,11 @@
+---
+- name: Install Redis package for Debian/Ubuntu
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+  when: ansible_os_family == "Debian" and redis_install_from_package | default(true)
+- name: Install Redis package for RedHat/CentOS
+  ansible.builtin.dnf:
+    name: redis
+    state: present
+  when: ansible_os_family == "RedHat" and redis_install_from_package | default(true)
