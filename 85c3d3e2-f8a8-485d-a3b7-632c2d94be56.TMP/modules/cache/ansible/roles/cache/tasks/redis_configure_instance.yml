@@ -1,0 +1,39 @@
+---
+- name: Set Redis instance variables
+  ansible.builtin.set_fact:
+    redis_port: "{{ redis_instance.port | default('6379') }}"
+    redis_name: "{{ redis_instance.name | default('redis_' + (redis_instance.port | default('6379'))) }}"
+    redis_datadir: "{{ redis_instance.datadir | default('/var/lib/redis/' + (redis_instance.port | default('6379'))) }}"
+    redis_logfile: "{{ redis_instance.logfile | default('/var/log/redis/' + (redis_instance.port | default('6379')) + '.log') }}"
+    redis_pidfile: "{{ redis_instance.pidfile | default('/var/run/redis/' + (redis_instance.port | default('6379')) + '.pid') }}"
+    redis_unixsocket: "{{ redis_instance.unixsocket | default('/var/run/redis/' + (redis_instance.port | default('6379')) + '.sock') }}"
+    redis_bind: "{{ redis_instance.bind | default('127.0.0.1') }}"
+    redis_maxmemory: "{{ redis_instance.maxmemory | default('') }}"
+    redis_maxmemory_policy: "{{ redis_instance.maxmemory_policy | default('volatile-lru') }}"
+- name: Create Redis data directory
+  ansible.builtin.file:
+    path: "{{ redis_datadir }}"
+    state: directory
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0755"
+- name: Create Redis configuration file
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/{{ redis_port }}.conf
+    owner: "{{ redis_user | default('redis') }}"
+    group: "{{ redis_group | default('redis') }}"
+    mode: "0644"
+  notify: restart redis {{ redis_port }}
+- name: Ensure Redis service is enabled and started
+  ansible.builtin.service:
+    name: redis@{{ redis_port }}
+    state: started
+    enabled: true
+  when: ansible_service_mgr == "systemd"
+- name: Ensure Redis service is enabled and started (non-systemd)
+  ansible.builtin.service:
+    name: redis_{{ redis_port }}
+    state: started
+    enabled: true
+  when: ansible_service_mgr != "systemd"

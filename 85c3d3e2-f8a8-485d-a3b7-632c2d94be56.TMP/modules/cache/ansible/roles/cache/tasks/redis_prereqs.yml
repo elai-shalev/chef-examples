@@ -1,0 +1,25 @@
+---
+- name: Install Redis build prerequisites for Debian/Ubuntu
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - tcl8.5
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Install Redis build prerequisites for RHEL/CentOS
+  ansible.builtin.yum:
+    name:
+      - make
+      - gcc
+      - tcl
+    state: present
+  when: ansible_os_family == "RedHat"
+- name: Install additional build tools
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - make
+    - gcc
+    - g++
+  when: not redis_package_install | default(true)

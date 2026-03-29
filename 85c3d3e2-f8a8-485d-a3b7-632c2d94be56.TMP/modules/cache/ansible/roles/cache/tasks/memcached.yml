@@ -1,0 +1,29 @@
+---
+- name: Install memcached package
+  ansible.builtin.package:
+    name: memcached
+    state: present
+- name: Create memcached directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: memcache
+    group: memcache
+    mode: "0755"
+  loop:
+    - /var/lib/memcached
+    - /var/log/memcached
+  ignore_errors: true
+- name: Configure memcached
+  ansible.builtin.template:
+    src: memcached.conf.j2
+    dest: /etc/memcached.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart memcached
+- name: Enable and start memcached service
+  ansible.builtin.service:
+    name: memcached
+    state: started
+    enabled: true

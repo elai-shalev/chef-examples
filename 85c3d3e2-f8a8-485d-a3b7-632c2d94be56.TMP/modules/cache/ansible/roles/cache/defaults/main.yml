@@ -1,0 +1,19 @@
+---
+redis_package_install: false
+redis_version: 6.2.6
+redis_install_dir: /usr/local
+redis_user: redis
+redis_group: redis
+redis_home_dir: /var/lib/redis
+redis_piddir: /var/run/redis
+redis_logdir: /var/log/redis
+redis_ulimit_nofile: 65536
+redis_servers:
+  - port: "6379"
+    bind: 127.0.0.1
+    maxmemory: 256mb
+    maxmemory_policy: volatile-lru
+    datadir: /var/lib/redis/6379
+    logfile: /var/log/redis/6379.log
+    pidfile: /var/run/redis/6379.pid
+    unixsocket: /var/run/redis/6379.sock

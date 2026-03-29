@@ -1,0 +1,31 @@
+---
+galaxy_info:
+  role_name: cache
+  author: Ansible Migration Team
+  description: Redis server installation and configuration
+  company: Example Corp
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+    - name: FreeBSD
+      versions:
+        - 12.0
+        - 13.0
+  galaxy_tags:
+    - redis
+    - cache
+    - database
+    - nosql
+dependencies: []

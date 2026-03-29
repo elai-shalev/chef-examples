@@ -1,0 +1,14 @@
+---
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+- name: restart redis 6379
+  ansible.builtin.service:
+    name: redis@6379
+    state: restarted
+  when: ansible_service_mgr == "systemd"
+- name: restart redis 6379 (non-systemd)
+  ansible.builtin.service:
+    name: redis_6379
+    state: restarted
+  when: ansible_service_mgr != "systemd"

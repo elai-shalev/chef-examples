@@ -1,0 +1,49 @@
+---
+- name: Create Redis configuration directory
+  ansible.builtin.file:
+    path: /etc/redis
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+- name: Configure Redis instances
+  ansible.builtin.include_tasks: redis_configure_instance.yml
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+  loop_control:
+    loop_var: redis_instance
+- name: Create systemd service files
+  ansible.builtin.template:
+    src: redis@.service.j2
+    dest: /etc/systemd/system/redis@.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_service_mgr == "systemd"
+  notify: reload systemd
+- name: Create init service files
+  ansible.builtin.template:
+    src: redis.init.j2
+    dest: /etc/init.d/redis_{{ item.port }}
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+  when: ansible_service_mgr == "sysvinit"
+- name: Create upstart service files
+  ansible.builtin.template:
+    src: redis.upstart.conf.j2
+    dest: /etc/init/redis_{{ item.port }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+  when: ansible_service_mgr == "upstart"
+- name: Create rcinit service files
+  ansible.builtin.template:
+    src: redis.rcinit.j2
+    dest: /usr/local/etc/rc.d/redis_{{ item.port }}
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ redis_servers | default([{'port': '6379'}]) }}"
+  when: ansible_os_family == "FreeBSD"

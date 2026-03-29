@@ -1,0 +1,3 @@
+# Redis server ulimit configuration
+{{ redis_user | default('redis') }} soft nofile {{ redis_ulimit_nofile | default('65536') }}
+{{ redis_user | default('redis') }} hard nofile {{ redis_ulimit_nofile | default('65536') }}
