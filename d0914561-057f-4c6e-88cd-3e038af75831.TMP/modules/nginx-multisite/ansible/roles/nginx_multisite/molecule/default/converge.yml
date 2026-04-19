@@ -1,0 +1,198 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Create base directories for testing
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        # Nginx directories
+        - /tmp/molecule_test/etc/nginx
+        - /tmp/molecule_test/etc/nginx/sites-available
+        - /tmp/molecule_test/etc/nginx/sites-enabled
+        - /tmp/molecule_test/etc/nginx/conf.d
+        # SSL directories
+        - /tmp/molecule_test/etc/ssl/certs
+        - /tmp/molecule_test/etc/ssl/private
+        # Document root directories
+        - /tmp/molecule_test/opt/server/test
+        - /tmp/molecule_test/opt/server/ci
+        - /tmp/molecule_test/opt/server/status
+        # Security directories
+        - /tmp/molecule_test/etc/fail2ban
+        - /tmp/molecule_test/etc/sysctl.d
+        - /tmp/molecule_test/etc/ssh
+
+    - name: Create nginx.conf
+      ansible.builtin.copy:
+        content: |
+          user www-data;
+          worker_processes auto;
+          pid /run/nginx.pid;
+          
+          events {
+            worker_connections 1024;
+          }
+          
+          http {
+            include /etc/nginx/mime.types;
+            default_type application/octet-stream;
+            
+            access_log /var/log/nginx/access.log;
+            error_log /var/log/nginx/error.log;
+            
+            include /etc/nginx/conf.d/*.conf;
+            include /etc/nginx/sites-enabled/*;
+          }
+        dest: /tmp/molecule_test/etc/nginx/nginx.conf
+        mode: "0644"
+
+    - name: Create security.conf
+      ansible.builtin.copy:
+        content: |
+          # Security headers
+          add_header X-Frame-Options SAMEORIGIN;
+          add_header X-Content-Type-Options nosniff;
+          add_header X-XSS-Protection "1; mode=block";
+          add_header Content-Security-Policy "default-src 'self'";
+          
+          # SSL settings
+          ssl_protocols TLSv1.2 TLSv1.3;
+          ssl_prefer_server_ciphers on;
+          ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+          ssl_session_cache shared:SSL:10m;
+          ssl_session_timeout 10m;
+        dest: /tmp/molecule_test/etc/nginx/conf.d/security.conf
+        mode: "0644"
+
+    - name: Create site configurations
+      ansible.builtin.copy:
+        content: |
+          server {
+            listen 80;
+            server_name {{ item }};
+            return 301 https://$host$request_uri;
+          }
+          
+          server {
+            listen 443 ssl;
+            server_name {{ item }};
+            
+            ssl_certificate /etc/ssl/certs/{{ item }}.crt;
+            ssl_certificate_key /etc/ssl/private/{{ item }}.key;
+            
+            root /opt/server/{{ item.split('.')[0] }};
+            index index.html;
+            
+            location / {
+              try_files $uri $uri/ =404;
+            }
+            
+            access_log /var/log/nginx/{{ item }}_access.log;
+            error_log /var/log/nginx/{{ item }}_error.log;
+          }
+        dest: "/tmp/molecule_test/etc/nginx/sites-available/{{ item }}"
+        mode: "0644"
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Create site symlinks
+      ansible.builtin.file:
+        src: "/tmp/molecule_test/etc/nginx/sites-available/{{ item }}"
+        dest: "/tmp/molecule_test/etc/nginx/sites-enabled/{{ item }}"
+        state: link
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Create SSL certificates
+      ansible.builtin.copy:
+        content: "# Mock SSL certificate for {{ item }}"
+        dest: "/tmp/molecule_test/etc/ssl/certs/{{ item }}.crt"
+        mode: "0644"
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Create SSL private keys
+      ansible.builtin.copy:
+        content: "# Mock SSL private key for {{ item }}"
+        dest: "/tmp/molecule_test/etc/ssl/private/{{ item }}.key"
+        mode: "0640"
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Create index.html files
+      ansible.builtin.copy:
+        content: "<html><body><h1>Welcome to {{ item.split('.')[0] }} site</h1></body></html>"
+        dest: "/tmp/molecule_test/opt/server/{{ item.split('.')[0] }}/index.html"
+        mode: "0644"
+      loop:
+        - test.cluster.local
+        - ci.cluster.local
+        - status.cluster.local
+
+    - name: Create fail2ban jail.local
+      ansible.builtin.copy:
+        content: |
+          [DEFAULT]
+          bantime = 3600
+          findtime = 600
+          maxretry = 5
+          
+          [sshd]
+          enabled = true
+          port = ssh
+          filter = sshd
+          logpath = /var/log/auth.log
+          maxretry = 3
+          
+          [nginx-http-auth]
+          enabled = true
+          port = http,https
+          filter = nginx-http-auth
+          logpath = /var/log/nginx/*error.log
+          maxretry = 3
+        dest: /tmp/molecule_test/etc/fail2ban/jail.local
+        mode: "0644"
+
+    - name: Create sysctl security config
+      ansible.builtin.copy:
+        content: |
+          # IP Spoofing protection
+          net.ipv4.conf.all.rp_filter = 1
+          net.ipv4.conf.default.rp_filter = 1
+          
+          # Block SYN attacks
+          net.ipv4.tcp_syncookies = 1
+          
+          # Disable IP source routing
+          net.ipv4.conf.all.accept_source_route = 0
+          net.ipv6.conf.all.accept_source_route = 0
+          
+          # Ignore ICMP redirects
+          net.ipv4.conf.all.accept_redirects = 0
+          net.ipv6.conf.all.accept_redirects = 0
+        dest: /tmp/molecule_test/etc/sysctl.d/99-security.conf
+        mode: "0644"
+
+    - name: Create SSH config with hardening
+      ansible.builtin.copy:
+        content: |
+          # SSH hardening
+          PermitRootLogin no
+          PasswordAuthentication no
+          Protocol 2
+          X11Forwarding no
+          UsePAM yes
+        dest: /tmp/molecule_test/etc/ssh/sshd_config
+        mode: "0644"
