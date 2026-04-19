@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   author: Migration Tool
+  namespace: x2a
   description: Migrated to modern Ansible
   galaxy_tags: []
   license: Apache-2.0
