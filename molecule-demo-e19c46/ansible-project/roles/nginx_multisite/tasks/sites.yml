@@ -4,12 +4,12 @@
     src: site.conf.j2
     dest: /etc/nginx/sites-available/{{ item.key }}
     mode: "0644"
-    variables:
-      server_name: "{{ item.key }}"
-      document_root: "{{ item.value.document_root }}"
-      ssl_enabled: "{{ item.value.ssl_enabled }}"
-      cert_file: "{{ nginx_ssl_certificate_path }}/{{ item.key }}.crt"
-      key_file: "{{ nginx_ssl_private_key_path }}/{{ item.key }}.key"
+  vars:
+    server_name: "{{ item.key }}"
+    document_root: "{{ item.value.document_root }}"
+    ssl_enabled: "{{ item.value.ssl_enabled }}"
+    cert_file: "{{ nginx_ssl_certificate_path }}/{{ item.key }}.crt"
+    key_file: "{{ nginx_ssl_private_key_path }}/{{ item.key }}.key"
   loop: "{{ nginx_sites | dict2items }}"
   notify: Reload nginx
 - name: Create symlinks to enable sites
