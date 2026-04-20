@@ -8,7 +8,7 @@
     - name: Run molecule test
       ansible.builtin.command:
         cmd: molecule test -s default
-        chdir: "{{ playbook_dir }}/../roles/nginx_multisite"
+        chdir: "{{ playbook_dir }}/roles/nginx_multisite"
       environment:
         ANSIBLE_FORCE_COLOR: "true"
       register: molecule_result
