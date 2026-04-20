@@ -1,7 +1,7 @@
 ---
 - name: Run nginx_multisite
   hosts: all
-
+  become: true
 
   roles:
     - nginx_multisite
