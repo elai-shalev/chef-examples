@@ -1,0 +1,205 @@
+{
+  "module_name": "nginx_multisite",
+  "items": [
+    {
+      "category": "structure",
+      "source_path": "cookbooks/nginx-multisite/metadata.rb",
+      "target_path": "./ansible/roles/nginx_multisite/meta/main.yml",
+      "status": "complete",
+      "description": "Role metadata",
+      "notes": "Created meta/main.yml with role metadata."
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/handlers/main.yml",
+      "status": "complete",
+      "description": "Main handler file",
+      "notes": "Created handlers/main.yml with all necessary handlers for the role."
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/main.yml",
+      "status": "complete",
+      "description": "Main tasks file",
+      "notes": "Created tasks/main.yml that imports all task files with appropriate tags."
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/defaults/main.yml",
+      "status": "complete",
+      "description": "Default variables file",
+      "notes": "Created defaults/main.yml with default variables for the role."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/default.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/main.yml",
+      "status": "complete",
+      "description": "Main recipe that includes other recipes",
+      "notes": "Created main tasks file that imports all task files with appropriate tags. Also created handlers file with all necessary handlers for the role."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/nginx.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/nginx.yml",
+      "status": "complete",
+      "description": "Nginx installation and configuration",
+      "notes": "Converted nginx recipe to Ansible tasks. Used dict2items filter to loop through sites and create document roots and deploy index.html files."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/security.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/security.yml",
+      "status": "complete",
+      "description": "Security configuration (fail2ban, ufw, sysctl, SSH)",
+      "notes": "Converted security recipe to Ansible tasks. Used lineinfile for SSH configuration, command with idempotence checks for UFW, and template for fail2ban and sysctl."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/sites.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/sites.yml",
+      "status": "complete",
+      "description": "Site configuration for multiple virtual hosts",
+      "notes": "Converted sites recipe to Ansible tasks. Used template module with vars parameter to pass variables to the template."
+    },
+    {
+      "category": "recipes",
+      "source_path": "cookbooks/nginx-multisite/recipes/ssl.rb",
+      "target_path": "./ansible/roles/nginx_multisite/tasks/ssl.yml",
+      "status": "complete",
+      "description": "SSL certificate generation and configuration",
+      "notes": "Converted SSL recipe to Ansible tasks. Used shell module with creates parameter for idempotence when generating self-signed certificates."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/fail2ban.jail.local.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/fail2ban.jail.local.j2",
+      "status": "complete",
+      "description": "Fail2ban jail configuration",
+      "notes": "Converted fail2ban.jail.local.erb to fail2ban.jail.local.j2. No Jinja2 variables needed in this template."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/nginx.conf.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/nginx.conf.j2",
+      "status": "complete",
+      "description": "Main Nginx configuration",
+      "notes": "Converted nginx.conf.erb to nginx.conf.j2. No Jinja2 variables needed in this template."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/security.conf.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/security.conf.j2",
+      "status": "complete",
+      "description": "Nginx security configuration",
+      "notes": "Converted security.conf.erb to security.conf.j2. No Jinja2 variables needed in this template."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/site.conf.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/site.conf.j2",
+      "status": "complete",
+      "description": "Nginx site configuration template",
+      "notes": "Converted site.conf.erb to site.conf.j2. Replaced ERB syntax with Jinja2 syntax: <%= @variable %> \u2192 {{ variable }}."
+    },
+    {
+      "category": "templates",
+      "source_path": "cookbooks/nginx-multisite/templates/default/sysctl-security.conf.erb",
+      "target_path": "./ansible/roles/nginx_multisite/templates/sysctl-security.conf.j2",
+      "status": "complete",
+      "description": "System security configuration for sysctl",
+      "notes": "Converted sysctl-security.conf.erb to sysctl-security.conf.j2. No Jinja2 variables needed in this template."
+    },
+    {
+      "category": "attributes",
+      "source_path": "cookbooks/nginx-multisite/attributes/default.rb",
+      "target_path": "./ansible/roles/nginx_multisite/defaults/main.yml",
+      "status": "complete",
+      "description": "Default role variables",
+      "notes": "Created defaults/main.yml with default variables for the role."
+    },
+    {
+      "category": "files",
+      "source_path": "cookbooks/nginx-multisite/files/default/test/index.html",
+      "target_path": "./ansible/roles/nginx_multisite/files/test/index.html",
+      "status": "complete",
+      "description": "Test site index.html",
+      "notes": "Copied static file for test site."
+    },
+    {
+      "category": "files",
+      "source_path": "cookbooks/nginx-multisite/files/default/ci/index.html",
+      "target_path": "./ansible/roles/nginx_multisite/files/ci/index.html",
+      "status": "complete",
+      "description": "CI site index.html",
+      "notes": "Copied static file for CI site."
+    },
+    {
+      "category": "files",
+      "source_path": "cookbooks/nginx-multisite/files/default/status/index.html",
+      "target_path": "./ansible/roles/nginx_multisite/files/status/index.html",
+      "status": "complete",
+      "description": "Status site index.html",
+      "notes": "Copied static file for status site."
+    },
+    {
+      "category": "molecule",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/molecule/default/molecule.yml",
+      "status": "complete",
+      "description": "Molecule scenario configuration",
+      "notes": "Created by MoleculeAgent (deterministic scaffold)"
+    },
+    {
+      "category": "molecule",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/molecule/default/converge.yml",
+      "status": "complete",
+      "description": "Molecule converge playbook",
+      "notes": "Created converge.yml playbook for Molecule testing that recreates the expected filesystem state under /tmp/molecule_test/ for container-safe testing."
+    },
+    {
+      "category": "molecule",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/molecule/default/verify.yml",
+      "status": "complete",
+      "description": "Molecule verification tasks",
+      "notes": "Created verify.yml playbook for Molecule testing that verifies the role's expected outcomes using container-safe tests with appropriate molecule-notest tags for service/network checks."
+    },
+    {
+      "category": "molecule",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/molecule/default/create.yml",
+      "status": "complete",
+      "description": "Molecule create playbook",
+      "notes": "Created by MoleculeAgent (deterministic scaffold)"
+    },
+    {
+      "category": "molecule",
+      "source_path": "N/A",
+      "target_path": "./ansible/roles/nginx_multisite/molecule/default/destroy.yml",
+      "status": "complete",
+      "description": "Molecule destroy playbook",
+      "notes": "Created by MoleculeAgent (deterministic scaffold)"
+    },
+    {
+      "category": "structure",
+      "source_path": "N/A",
+      "target_path": "ansible/roles/nginx_multisite/meta/main.yml",
+      "status": "complete",
+      "description": "Created standard meta/main.yml",
+      "notes": ""
+    },
+    {
+      "category": "files",
+      "source_path": "cookbooks/nginx-multisite/README.md",
+      "target_path": "./ansible/roles/nginx_multisite/README.md",
+      "status": "complete",
+      "description": "Create README.md for the role",
+      "notes": "Created README.md with role documentation."
+    }
+  ]
+}
