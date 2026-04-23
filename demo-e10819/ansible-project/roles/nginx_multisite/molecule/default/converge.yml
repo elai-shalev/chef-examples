@@ -1,0 +1,293 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  vars:
+    nginx:
+      ssl:
+        certificate_path: /tmp/molecule_test/etc/ssl/certs
+        private_key_path: /tmp/molecule_test/etc/ssl/private
+      sites:
+        test.cluster.local:
+          document_root: /tmp/molecule_test/opt/server/test
+          ssl_enabled: true
+        ci.cluster.local:
+          document_root: /tmp/molecule_test/opt/server/ci
+          ssl_enabled: true
+        status.cluster.local:
+          document_root: /tmp/molecule_test/opt/server/status
+          ssl_enabled: true
+    security:
+      ssh:
+        disable_root: true
+        password_auth: false
+  tasks:
+    # Create base directories
+    - name: Create base directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - /tmp/molecule_test/etc/nginx
+        - /tmp/molecule_test/etc/nginx/sites-available
+        - /tmp/molecule_test/etc/nginx/sites-enabled
+        - /tmp/molecule_test/etc/nginx/conf.d
+        - /tmp/molecule_test/etc/fail2ban
+        - /tmp/molecule_test/etc/sysctl.d
+        - /tmp/molecule_test/etc/ssl/certs
+        - /tmp/molecule_test/etc/ssl/private
+        - /tmp/molecule_test/var/lib/ansible
+        - /tmp/molecule_test/etc/ssh
+
+    # Create document root directories
+    - name: Create document root directories
+      ansible.builtin.file:
+        path: "{{ item.value.document_root }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ nginx.sites | dict2items }}"
+
+    # Create nginx configuration files
+    - name: Create nginx.conf
+      ansible.builtin.copy:
+        content: |
+          user www-data;
+          worker_processes auto;
+          pid /run/nginx.pid;
+          
+          events {
+            worker_connections 768;
+          }
+          
+          http {
+            sendfile on;
+            tcp_nopush on;
+            tcp_nodelay on;
+            keepalive_timeout 65;
+            types_hash_max_size 2048;
+            
+            include /etc/nginx/mime.types;
+            default_type application/octet-stream;
+            
+            ssl_protocols TLSv1.2 TLSv1.3;
+            ssl_prefer_server_ciphers on;
+            
+            access_log /var/log/nginx/access.log;
+            error_log /var/log/nginx/error.log;
+            
+            gzip on;
+            
+            include /etc/nginx/conf.d/*.conf;
+            include /etc/nginx/sites-enabled/*;
+          }
+        dest: /tmp/molecule_test/etc/nginx/nginx.conf
+        mode: "0644"
+
+    - name: Create security.conf
+      ansible.builtin.copy:
+        content: |
+          # Security settings for Nginx
+          server_tokens off;
+          
+          # Rate limiting
+          limit_req_zone $binary_remote_addr zone=login:10m rate=1r/s;
+          
+          # SSL settings
+          ssl_protocols TLSv1.2 TLSv1.3;
+          ssl_prefer_server_ciphers on;
+          ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+          ssl_session_timeout 1d;
+          ssl_session_cache shared:SSL:50m;
+          ssl_stapling on;
+          ssl_stapling_verify on;
+        dest: /tmp/molecule_test/etc/nginx/conf.d/security.conf
+        mode: "0644"
+
+    # Create site configuration files
+    - name: Create site configuration files
+      ansible.builtin.copy:
+        content: |
+          server {
+            listen 80;
+            server_name {{ item.key }};
+            
+            # Redirect all HTTP requests to HTTPS
+            return 301 https://$host$request_uri;
+          }
+          
+          server {
+            listen 443 ssl;
+            server_name {{ item.key }};
+            
+            root {{ item.value.document_root }};
+            index index.html;
+            
+            ssl_certificate {{ nginx.ssl.certificate_path }}/{{ item.key }}.crt;
+            ssl_certificate_key {{ nginx.ssl.private_key_path }}/{{ item.key }}.key;
+            
+            location / {
+              try_files $uri $uri/ =404;
+            }
+            
+            access_log /var/log/nginx/{{ item.key }}_access.log;
+            error_log /var/log/nginx/{{ item.key }}_error.log;
+          }
+        dest: "/tmp/molecule_test/etc/nginx/sites-available/{{ item.key }}"
+        mode: "0644"
+      loop: "{{ nginx.sites | dict2items }}"
+
+    # Create symlinks for sites-enabled
+    - name: Create symlinks for sites-enabled
+      ansible.builtin.file:
+        src: "/tmp/molecule_test/etc/nginx/sites-available/{{ item.key }}"
+        dest: "/tmp/molecule_test/etc/nginx/sites-enabled/{{ item.key }}"
+        state: link
+      loop: "{{ nginx.sites | dict2items }}"
+
+    # Create SSL certificates
+    - name: Create mock SSL certificates
+      ansible.builtin.copy:
+        content: |
+          -----BEGIN CERTIFICATE-----
+          MIIDazCCAlOgAwIBAgIUEF5Fjs8hep1KVIJo5jL+Ky3TGZQwDQYJKoZIhvcNAQEL
+          BQAwRTELMAkGA1UEBhMCVVMxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
+          GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yMzA1MTAxMjAwMDBaFw0yNDA1
+          MDkxMjAwMDBaMEUxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMSEw
+          HwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwggEiMA0GCSqGSIb3DQEB
+          AQUAA4IBDwAwggEKAoIBAQC7VJTUt9Us8cKjMzEfXrn3XpO93G5iRzMq5wJrXDVi
+          PxcNRx4cVOkMe+j7ZFMQWAdjZAGH4ZdKnLjc3yksBWk0MoVVKZHIwCQxtzDqHuLv
+          ZOG8qcHai7Nd8T9QiIE+3BhME9k5DLG7c1MrBZzCwX/V0BokmJGfcQFjWEOCXQDh
+          LtDFWnIqyyw69qF9C9Yux9ba0WRdEi0K2Gcz7nwhHKETWIvLj6ORjTEkd/cDNrUm
+          YoKt9G8Eu5PYdYxr4+KaXenK3xUVPxDgLHpjgvB/2kz9gT2G3iXZZvD85puEqiLM
+          /urNXJ2KFBYDmYz5LqXZZh7ZIuU0Z4g7mIRiZ0d/AgMBAAGjUzBRMB0GA1UdDgQW
+          BBQdheJuJ5WK/FD+00BFuldOQ83sSjAfBgNVHSMEGDAWgBQdheJuJ5WK/FD+00BF
+          uldOQ83sSjAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBQ7bK1
+          2Ml8Wa1NvBLbFsGDnCcMgWWkdMdcKY1kS6tjI2gqgLX+I3Cz5X+y0YCDfXXHoKrB
+          8NFKkCiZmZbFUkE8Et1qyXQFHtIYRMjFMLe0g4rrVPdYDCbH/VKKFnzVqYwYXpYQ
+          ROPYEpWpz+nNQv+M0QRQeT2hVgHohEpwH8CtQ9qmzZ0aJu5YI5RgHYzELeaIwJN4
+          5MG8YU5qHeSzRnQTNYhsXcDK9Oc/0PENIJBtOEkf0jXVYg+ySQISUjwHAgQ0nC5V
+          fKKLiV0jBVZ4QXcHSQHcVnFy8VsNQCm+0gadAXCCFLY5n9kin98v8YXbIef+bYI3
+          EgZsGKaC7HGjbZuS
+          -----END CERTIFICATE-----
+        dest: "{{ nginx.ssl.certificate_path }}/{{ item.key }}.crt"
+        mode: "0644"
+      loop: "{{ nginx.sites | dict2items }}"
+
+    - name: Create mock SSL keys
+      ansible.builtin.copy:
+        content: |
+          -----BEGIN PRIVATE KEY-----
+          MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj
+          MzEfXrn3XpO93G5iRzMq5wJrXDViPxcNRx4cVOkMe+j7ZFMQWAdjZAGH4ZdKnLjc
+          3yksBWk0MoVVKZHIwCQxtzDqHuLvZOG8qcHai7Nd8T9QiIE+3BhME9k5DLG7c1Mr
+          BZzCwX/V0BokmJGfcQFjWEOCXQDhLtDFWnIqyyw69qF9C9Yux9ba0WRdEi0K2Gcz
+          7nwhHKETWIvLj6ORjTEkd/cDNrUmYoKt9G8Eu5PYdYxr4+KaXenK3xUVPxDgLHpj
+          gvB/2kz9gT2G3iXZZvD85puEqiLM/urNXJ2KFBYDmYz5LqXZZh7ZIuU0Z4g7mIRi
+          Z0d/AgMBAAECggEADEEwgkjZfFDR84lWoztFXKDcZgrGDmDkI0ozpr4/t6mhIKSM
+          GGjg53dhtEF7zU2lRD1FX2wqJVHMSeRZxZzL6wHvVzz/Wd3Dfs7KxjtDN8YSuI8n
+          7at+DF0Q7AITavxA5mwhOro1TEFyLl9Svs9nFT2KtUWmGxJCZs+LYvPGkDFMA4W5
+          MoaHxfHCGjLR7KFYMMF3jYxCpn+YW5lN2zHyFOoTFxRMWo4OfLdqh7ddkPBFfFP8
+          Z8V3NkGh3VQjvRz4hs/MWnP8QUFwRD/pdS/Bs7rzrjZHU7ZUfpIHhqwYZRdUwaBw
+          QxwU9MhJ5wI+ybUbQ2WXgBGHEg5ighJPQYcjUQKBgQDgSi9yhdKc7ZVlp7YX5y1g
+          +O4V4+LhKd8HXVQBJI/2R3gVOcIyPEnOLgYQXRuJ8z7NjRRX/8/0xqYJsPmE/icL
+          a8+NHtxR4rlCgEZu6bqOHSocVDG9C1jbJY7+P+PJqQkCKYS+qF/THhtfPNpLw3SK
+          Mq/Bl1wyYBCtMXO1iKTnmQKBgQDWYg3+nRxNAJLQ1bJ3Vx9r7kG0tNT1Zp3pzXSV
+          4rRLQrPGTfMPXG9RMWWwAQnjI5NLw8pKXUBj5xAqIJLiRLCvRQj3/s4OEGCYVXac
+          WfnS5jnYkxCnrXiGMtBQhfN68iOcMiJWLlD9aF/Xf5XNYu0Ilo3rSu9pYzW2xVEf
+          1xBYRwKBgFnfcPR8y7kCQU9w6/sZEreHDqEkXLTmCml5AxMSCYKJPYra5F3OGkvc
+          vxGY9JYVg0LGIUqOAWHMCCMgIRAIkYJKYVoDKTLZTvnMSUUeXGLNB/Z/CgaXH7BU
+          zvcmHbZFj4TLJ4zvVJ9U3Lfv9Ay1HhgTjHJAzXEzHLr7Hx45G7RJAoGAQFDgLIw8
+          KNkMPGQDUaSuBjTbnD9MXbVPDQxbzY4juLaYQeWjfzL2JJ5HkbM/uhwKVTvNw0NR
+          nSDZQxAJMbBHIqLUqLgOQMrQlM5CHN0JQlJzUEOmUTGxZLYe1YCGJ/UxJ1mSJoF9
+          Siq8a4U4DYxXZJPO+BDlbQHbEaEYHZhhGvkCgYEAuUNGWuNVJYYMSJJQULYZTZ7M
+          +voYc7H8TUGz/NjdBYA/6bn1qMGUQEJU9iCLy28SEtB8p3zGkTXGcVXHPOlJhAhL
+          C1RfIQMZ/0jXnzvhK1UJZMKKUTfmtcTusY1L2+HSfOzDE9GoYQ7zLk5Oxl4YhQZQ
+          gEOkWncllafIO8KEmSs=
+          -----END PRIVATE KEY-----
+        dest: "{{ nginx.ssl.private_key_path }}/{{ item.key }}.key"
+        mode: "0640"
+      loop: "{{ nginx.sites | dict2items }}"
+
+    # Create fail2ban configuration
+    - name: Create fail2ban jail.local
+      ansible.builtin.copy:
+        content: |
+          [DEFAULT]
+          bantime = 3600
+          findtime = 600
+          maxretry = 5
+          
+          [sshd]
+          enabled = true
+          port = ssh
+          filter = sshd
+          logpath = /var/log/auth.log
+          maxretry = 3
+          
+          [nginx-http-auth]
+          enabled = true
+          port = http,https
+          filter = nginx-http-auth
+          logpath = /var/log/nginx/*error.log
+          maxretry = 3
+        dest: /tmp/molecule_test/etc/fail2ban/jail.local
+        mode: "0644"
+
+    # Create sysctl security configuration
+    - name: Create sysctl security configuration
+      ansible.builtin.copy:
+        content: |
+          # IP Spoofing protection
+          net.ipv4.conf.all.rp_filter = 1
+          net.ipv4.conf.default.rp_filter = 1
+          
+          # Block SYN attacks
+          net.ipv4.tcp_syncookies = 1
+          net.ipv4.tcp_max_syn_backlog = 2048
+          net.ipv4.tcp_synack_retries = 2
+          net.ipv4.tcp_syn_retries = 5
+          
+          # Do not accept ICMP redirects
+          net.ipv4.conf.all.accept_redirects = 0
+          net.ipv4.conf.default.accept_redirects = 0
+          net.ipv6.conf.all.accept_redirects = 0
+          net.ipv6.conf.default.accept_redirects = 0
+          
+          # Do not send ICMP redirects
+          net.ipv4.conf.all.send_redirects = 0
+          net.ipv4.conf.default.send_redirects = 0
+        dest: /tmp/molecule_test/etc/sysctl.d/99-security.conf
+        mode: "0644"
+
+    # Create SSH configuration
+    - name: Create SSH configuration
+      ansible.builtin.copy:
+        content: |
+          # SSH hardening configuration
+          PermitRootLogin no
+          PasswordAuthentication no
+          ChallengeResponseAuthentication no
+          UsePAM yes
+          X11Forwarding no
+          PrintMotd no
+        dest: /tmp/molecule_test/etc/ssh/sshd_config
+        mode: "0644"
+
+    # Create index.html files for each site
+    - name: Create index.html files
+      ansible.builtin.copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>{{ item.key }}</title>
+          </head>
+          <body>
+            <h1>Welcome to {{ item.key }}</h1>
+            <p>This is a test page for {{ item.key }}</p>
+          </body>
+          </html>
+        dest: "{{ item.value.document_root }}/index.html"
+        mode: "0644"
+      loop: "{{ nginx.sites | dict2items }}"

@@ -1,0 +1,16 @@
+---
+nginx:
+  ssl:
+    certificate_path: /etc/ssl/certs
+    private_key_path: /etc/ssl/private
+  sites:
+    example.com:
+      document_root: /var/www/example.com
+      ssl_enabled: true
+    test.example.com:
+      document_root: /var/www/test.example.com
+      ssl_enabled: false
+security:
+  ssh:
+    disable_root: true
+    password_auth: false
